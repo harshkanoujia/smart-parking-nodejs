@@ -1,0 +1,5 @@
+{
+    "port": 3000,
+    "jwtPrivateKey": "Parking Management System",
+    "MONGO_DB": "mongodb://localhost/ParkingManagementSystem"
+}

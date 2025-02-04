@@ -1,0 +1,9 @@
+# Node artifact files
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+
+# Ignore sensitive config (if needed)
+config/default.json
