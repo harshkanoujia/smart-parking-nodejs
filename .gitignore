@@ -5,5 +5,9 @@ package-lock.json
 # Environment variables
 .env
 
-# Ignore sensitive config (if needed)
-config/default.json
+#Configuration files    # * ignore json files
+/src/config/default.json 
+/src/config/*.json          
+
+#Now README.md not push
+README.md
