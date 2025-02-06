@@ -7,7 +7,7 @@ const { ParkingSpot } = require('../model/ParkingSpot');
 const router = express.Router();
 
 
-router.get('/', async ( req , res)=>{                                                           //All bookings
+router.get('/', async ( req , res ) => {                                                           //All bookings
     try {
         const checkBooking = await Booking.find()//.populate('parkingAreaId').populate('vehicleId')           //.populate('userId')
         
@@ -43,7 +43,7 @@ router.get('/', async ( req , res)=>{                                           
     }
 })
 
-router.post('/', async ( req , res)=>{                                                          //User can book a slot
+router.post('/', async ( req , res ) => {                                                          //User can book a slot
 
     if (!mongoose.Types.ObjectId.isValid(req.body.parkingAreaId)) {
         return res.status(400).json({ msg: 'Invalid Parking ID !' });
@@ -113,7 +113,7 @@ router.post('/', async ( req , res)=>{                                          
     } 
 })
 
-router.post('/complete', async (req ,res) => {                                                  //Under construction
+router.post('/complete', async ( req , res ) => {                                                  //Under construction
 
     if(!mongoose.Types.ObjectId.isValid(req.body.bookingId)){
         return res.status(400).json({msg: 'Invalid Booking Id'})
@@ -168,7 +168,163 @@ router.post('/complete', async (req ,res) => {                                  
     }
 })
 
-router.get('/:id', async ( req , res)=>{                                                        //Booking find by Id
+router.get('/user', async ( req, res ) => {
+    if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
+        return res.status(400).send('It work')
+    }
+
+    try {
+        const userBooking = await Booking.aggregate([
+            {
+                $match: { 
+                    userId: new mongoose.Types.ObjectId(req.query.userId),
+                    status: { $ne: "complete"}
+                },
+                
+            },
+            {
+                $sort: { spotNo : 1 }
+            },
+            {
+                $limit: 2
+            },
+            {   
+                $lookup: {
+                    from: "vehicles",
+                    localField: "vehicleId",
+                    foreignField: "_id",
+                    as: "Vehicle",
+                    pipeline : [
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "ownerId",
+                                foreignField: "_id",
+                                as: "User Profile",
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $lookup: {
+                    from: "parkingareas",
+                    localField: "parkingAreaId",
+                    foreignField: "_id",
+                    as: "Parking Area",
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: 'admins',
+                                localField: 'createdBy',
+                                foreignField: '_id',
+                                as: 'Owner',
+                            },
+                        },
+                    ],
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: 0,
+                    vehicleId: 0,
+                    parkingAreaId: 0,
+                    status: 0,
+                    "Parking Area.createdDate": 0,
+                    "Parking Area._id": 0,
+                    "Parking Area.Owner._id": 0,
+                    "Parking Area.Owner.password": 0,
+                    "Parking Area.Owner.createdDate": 0,
+                    "Parking Area.Owner.token": 0,
+                    "Vehicle._id": 0,
+                    "Vehicle.createdDate": 0,
+                    "Vehicle.ownerId": 0,
+                    "Vehicle.User Profile._id": 0,
+                    "Vehicle.User Profile.password": 0,
+                    "Vehicle.User Profile.token": 0,
+                    "Vehicle.User Profile.createdDate": 0,
+                    "Vehicle.__v": 0,
+                    "Vehicle.User Profile.__v": 0,
+                    "Parking Area.__v": 0,
+                    "Parking Area.Owner.__v": 0,
+                    __v:0,
+                }
+            },
+            // {
+            //     $group: {
+            //         _id: "$spotNo", 
+            //         count: { $sum: 1 }
+            //     }
+            // },
+        ])
+        if(! userBooking  || userBooking.length === 0 )  return res.status(400).send({ statuscode: 400, message: "Faliure", data: { message: "UserId Not found"}})
+    
+        return res.status(200).send({ statuscode: 200, message: "Success", data: { "The Active booking is ": userBooking }})
+        
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ msg : 'Server did not respond', err: error.message})  
+    }
+
+})
+
+router.get('/user/history', async ( req, res ) => {
+    if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
+        return res.status(400).send( { statuscode: 400, message: "Faliure", data: { message:'Invalid Id'} })
+    }
+
+    try {
+        const userBooking = await Booking.aggregate([
+            {
+                $match: { userId: new mongoose.Types.ObjectId(req.query.userId) }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "User",
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "parkingareas",
+                    "localField": "parkingAreaId",
+                    "foreignField": "_id",
+                    "as": "Parking"
+                }
+            },
+            {
+                $project: {
+                    User: { $concatArrays: [ "$User", "$Parking"]}
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: 0,
+                    "User._id": 0,
+                    "User.password": 0,
+                    "User.token": 0,
+                    "Parking Area.createdDate": 0,
+                    "Parking Area._id": 0,
+                    "Parking Area.__v": 0,
+                    __v:0,
+                }
+            }
+        ])
+        if(! userBooking )  return res.status(400).send({ statuscode: 400, message: "Faliure", data: { message: "UserId Not found"}})
+    
+        return res.status(200).send({ statuscode: 200, message: "Success", data: { "Your Booking History is ": userBooking } })
+        
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ msg : 'Server did not respond', err: error.message})  
+    }
+})
+
+router.get('/:id', async ( req , res) => {                                                        //Booking find by Id
     if(! mongoose.Types.ObjectId.isValid(req.params.id)){
         return res.status(400).send('Invalid Id')
     }
@@ -189,7 +345,7 @@ router.get('/:id', async ( req , res)=>{                                        
                   from: "parkingareas",                                                        
                   localField: "parkingAreaId",                                                
                   foreignField: "_id",                                                 
-                  as: "SlotDetails"                                                     
+                  as: "Area"                                                     
                 }
             },
         ])

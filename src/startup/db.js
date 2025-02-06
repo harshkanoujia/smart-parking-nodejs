@@ -18,4 +18,4 @@ const connectMongoDb = () => {
         res.status(500).send({ statuscode: 500, message: 'Failure', data: 'MongoDb not connected' })
     }
 }
-module.exports.connect = connectMongoDb;
+module.exports.connectDb = connectMongoDb;
