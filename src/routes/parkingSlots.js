@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/', async (req , res) =>{                                                        //All Parking Slots 
     try {
-        const allPrakingSlots = await ParkingSlot.find()
+        const allPrakingSlots = await ParkingSlot.find() 
         // const allPrakingSlots = await ParkingSlot.aggregate([ {$match: {} } ])
         if(allPrakingSlots.length === 0) return res.status(400).json({ msg: 'No Parking Slot Found !'})
 

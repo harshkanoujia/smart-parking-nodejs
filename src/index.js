@@ -1,11 +1,11 @@
 require('dotenv').config()
 const express = require('express')
-const { connect } = require('./startup/db');
+const { connectDb } = require('./startup/db');
 const config = require("config");                                                                                                                                                           //Configuration management library to fetch environment-specific configs (like port, DB URL, etc.).
 const app = express()
 
 // Connection with MongoDb
-connect();
+connectDb();
 
 //routes
 require('./startup/routes')(app)
