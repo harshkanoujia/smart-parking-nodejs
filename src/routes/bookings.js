@@ -4,14 +4,15 @@ const { Booking } = require('../model/Booking');
 const { Vehicle } = require('../model/Vehicle');
 const { ParkingSlot } = require('../model/ParkingSlot');
 const { ParkingSpot } = require('../model/ParkingSpot');
+const { SYSTEM_FAILURE } = require('../config/constant');
 const router = express.Router();
 
 
 router.get('/', async ( req , res ) => {                                                           //All bookings
     try {
-        const checkBooking = await Booking.find()//.populate('parkingAreaId').populate('vehicleId')           //.populate('userId')
+        // const checkBooking = await Booking.find()//.populate('parkingAreaId').populate('vehicleId')           //.populate('userId')
         
-        // const checkBooking = await Booking.aggregate([{ $match: {} } ])
+        const checkBooking = await Booking.aggregate([{ $match: {} } ])
         
         // const checkBooking = await Booking.aggregate([ 
         //     {
@@ -39,7 +40,7 @@ router.get('/', async ( req , res ) => {                                        
             res.status(200).json({"Bookings": checkBooking })
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg : 'Server did not respond', err: error.message})  
+        res.status(500).json({msg : SYSTEM_FAILURE, err: error.message})  
     }
 })
 

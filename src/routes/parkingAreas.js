@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { ParkingArea } = require('../model/ParkingArea');
-const { authentication } = require('../middleware/authentication');
+const { authentication } = require('../middleware/auth');
 const router = express.Router();
 
 
