@@ -288,16 +288,34 @@ router.get('/user/history', async ( req, res ) => {
                 }
             },
             {
+                $unwind: "$User"
+            },
+            {
                 "$lookup": {
                     "from": "parkingareas",
                     "localField": "parkingAreaId",
                     "foreignField": "_id",
-                    "as": "Parking"
+                    "as": "Parking Area"
                 }
             },
             {
-                $project: {
-                    User: { $concatArrays: [ "$User", "$Parking"]}
+                $unwind: "$Parking Area"
+            },
+            {
+                $group: {
+                    _id: "$user._id",
+                    user: { $first: "$User" },
+                    parkingArea: { $first: "$Parking Area"},
+                    bookingHistory: {
+                        $push: {
+                            vehicleId: "$vehicleId",
+                            status: "$status",
+                            spotNo: "$spotNo",
+                            days: "$days",
+                            hours: "$hours",
+                            bookingDate: "$bookingDate"
+                        }
+                    }
                 }
             },
             {
@@ -305,10 +323,10 @@ router.get('/user/history', async ( req, res ) => {
                     _id: 0,
                     userId: 0,
                     "User._id": 0,
-                    "User.password": 0,
-                    "User.token": 0,
-                    "Parking Area.createdDate": 0,
-                    "Parking Area._id": 0,
+                    // "User.password": 0,
+                    // "User.token": 0,
+                    // "Parking Area.createdDate": 0,
+                    // "Parking Area._id": 0,
                     "Parking Area.__v": 0,
                     __v:0,
                 }
