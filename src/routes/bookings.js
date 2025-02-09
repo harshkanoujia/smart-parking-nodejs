@@ -114,7 +114,7 @@ router.post('/', async ( req , res ) => {                                       
     } 
 })
 
-router.post('/complete', async ( req , res ) => {                                                  //Under construction
+router.post('/complete', async ( req , res ) => {                                                  //User can complete its booking
 
     if(!mongoose.Types.ObjectId.isValid(req.body.bookingId)){
         return res.status(400).json({msg: 'Invalid Booking Id'})
@@ -289,9 +289,6 @@ router.get('/user/history', async ( req, res ) => {
                 }
             },
             {
-                $unwind: "$User"
-            },
-            {
                 "$lookup": {
                     "from": "parkingareas",
                     "localField": "parkingAreaId",
@@ -299,13 +296,45 @@ router.get('/user/history', async ( req, res ) => {
                     "as": "Parking Area"
                 }
             },
+            {   $unwind: "$User"  },
+            {   $unwind: "$Parking Area"  },
             {
-                $unwind: "$Parking Area"
+                $addFields: { 
+                    "User.userTimestamp": { $toDate : "$User.createdDate"},
+                    timestamp: { $toDate : "$bookingDate"}
+                }
+            },
+            {
+                $addFields: {
+                    "User.createdDateString": {
+                        $dateToString: {
+                            format: "%Y-%m-%d %H:%M:%S",
+                            date: "$User.userTimestamp",
+                            // timezone: "Asia/Kolkata"             // Adjust to your timezone
+                        },
+                    },
+                    createdDateString: {
+                        $dateToString: {
+                            format: "%Y-%m-%d %H:%M:%S",            // Customize format as needed
+                            date: "$timestamp",
+                            // timezone: "Asia/Kolkata"             // Optional: Set your timezone
+                        }
+                    }
+                }
             },
             {
                 $group: {
                     _id: "$user._id",
-                    user: { $first: "$User" },
+                    user: { 
+                        // $first: "$User"
+                        $first:{
+                            username: "$User.username",
+                            email: "$User.email",
+                            phoneNo: "$User.phoneNo",
+                            role: "$User.role",
+                            createdDate: "$User.createdDateString"          // Formatted user creation date
+                        }
+                    },
                     parkingArea: { $first: "$Parking Area"},
                     bookingHistory: {
                         $push: {
@@ -314,7 +343,7 @@ router.get('/user/history', async ( req, res ) => {
                             spotNo: "$spotNo",
                             days: "$days",
                             hours: "$hours",
-                            bookingDate: "$bookingDate"
+                            bookingDate: "$createdDateString",
                         }
                     }
                 }
@@ -323,12 +352,12 @@ router.get('/user/history', async ( req, res ) => {
                 $project: {
                     _id: 0,
                     userId: 0,
-                    "User._id": 0,
-                    // "User.password": 0,
-                    // "User.token": 0,
-                    // "Parking Area.createdDate": 0,
-                    // "Parking Area._id": 0,
-                    "Parking Area.__v": 0,
+                    "user._id": 0,
+                    "user.token": 0,
+                    "user.password": 0,
+                    "parkingArea.createdDate": 0,
+                    "parkingArea._id": 0,
+                    "parkingArea.__v": 0,
                     __v:0,
                 }
             }
