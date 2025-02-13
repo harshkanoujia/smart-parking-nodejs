@@ -69,13 +69,11 @@ const BOOKING_CONSTANTS = {
   INVALID_PROVIDER: "Provider with given Id not found.",
   MEDIA_SERVICE: "Images and Video need to be uploaded",
   INVALID_PLAN: "There is no membership plan with this given Id.Kindly check Whether you have any activated plan or not",
-  SYSTEM_FAILURE: SYSTEM_FAILURE,
   PAYMENT_FAILED: "Payment Failed. Please check your payment method and try again.",
   INPROGRESS_SUCCESS: "Provider has started the service",
   PROVIDER_INPROGRESS_FAILURE: "Your task is already in progress.",
   NOT_STARTED: "Provider has not yet started his journey",
-  CANT_BOOK:
-    "You can't accept multiple requests. You can accept another request once you have started the service of current request.",
+  CANT_BOOK:  "You can't accept multiple requests. You can accept another request once you have started the service of current request.",
   CANCEL_SUBMIT_SUCCESS: "Booking Cancelled Successfully.",
   UPLOADED_SUCCESSFULLY: "Image is uploaded successfully.",
   CANCEL_BOOKING: "Are you sure you want to cancel?",
@@ -106,10 +104,10 @@ const OTP_CONSTANTS = {
 
 
 module.exports = {
-    AUTH_CONSTANTS,
-    ADMIN_CONSTANTS,
-    USER_CONSTANTS,
-    BOOKING_CONSTANTS,
-    OTP_CONSTANTS,
-    SYSTEM_FAILURE
+  AUTH_CONSTANTS,
+  ADMIN_CONSTANTS,
+  USER_CONSTANTS,
+  BOOKING_CONSTANTS,
+  OTP_CONSTANTS,
+  SYSTEM_FAILURE
 }

@@ -1,3 +1,4 @@
+const Joi = require('joi')
 const mongoose = require('mongoose');
 
 const User = mongoose.model('User', new mongoose.Schema({
@@ -9,5 +10,42 @@ const User = mongoose.model('User', new mongoose.Schema({
     createdDate: { type: Number , default: Date.now },
     token: { type: String }                           
 }))                           
-                             
-module.exports.User = User ;  
+       
+
+function validateUserRegister(user){
+    const Schema = Joi.object({
+        username: Joi.string().min(3).max(20),
+        email: Joi.string().email().max(150).trim().required(),    
+        password: Joi.string().min(6).max(250).required(),
+        phoneNo: Joi.string().min(10).max(12),
+        role: Joi.string()
+    })
+    return Schema.validate(user)
+}
+
+function validateUserLogin(user){
+    const Schema = Joi.object({
+        email: Joi.string().email().max(150).trim().required(),    
+        password: Joi.string().min(6).max(250).required(),
+        phoneNo: Joi.string().min(10).max(12),
+        role: Joi.string()
+    })
+    return Schema.validate(user)
+}
+
+function validateUserUpdate(user){
+    const Schema = Joi.object({
+        username: Joi.string().min(3).max(20),
+        email: Joi.string().email().max(150).trim().required(),    
+        password: Joi.string().min(3).max(250).required(),
+        phoneNo: Joi.string().min(10).max(12),
+        role: Joi.string()
+    })
+    return Schema.validate(user)
+}
+
+module.exports = {
+    User,
+    validateUserRegister,
+    validateUserUpdate
+}

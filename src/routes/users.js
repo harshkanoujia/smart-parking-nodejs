@@ -4,7 +4,7 @@ const Bcrypt = require('bcrypt');
 const Jwt = require('jsonwebtoken');
 const { User } = require('../model/User');
 const { Validation } = require('../model/validation');
-const { authentication } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const router = express.Router();
 
  
@@ -50,11 +50,6 @@ router.post('/signup', async ( req , res)=>{                                    
 
 router.post('/login', async ( req , res)=>{                                                 //User can login
     try {
-        req.apiId = new mongoose.Types.ObjectId();
-        const apiId = req.apiId
-        const timestamp = apiId.getTimestamp().toString();
-        console.log(`\n Timestamp: ${timestamp} \n`);
-
         const {error} = Validation(req.body)
         if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
             
@@ -81,7 +76,7 @@ router.post('/login', async ( req , res)=>{                                     
     
 })
 
-router.post('/logout', authentication, async (req, res) =>{                                 //User can logout with providing email and token in headers
+router.post('/logout', auth, async (req, res) =>{                                 //User can logout with providing email and token in headers
     try {
         if (req.user.email !== req.body.email.trim().toLowerCase() ) {
             return res.status(400).json({ msg: 'Email in Token does not match with provided email'})

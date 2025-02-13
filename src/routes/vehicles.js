@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { Vehicle } = require('../model/Vehicle');
-const { authentication } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 
@@ -18,7 +18,7 @@ router.get('/', async ( req , res)=>{                                           
     }
 })
  
-router.post('/', authentication ,async ( req , res)=>{                                  //User can create vehicle
+router.post('/', auth ,async ( req , res)=>{                                  //User can create vehicle
     try {
         if (req.user._id !== req.body.ownerId) {
             return res.status(400).json({ msg: 'Please provide valid token. Does not match with OwnerID !'})

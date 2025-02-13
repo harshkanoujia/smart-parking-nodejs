@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { ParkingSlot } = require('../model/ParkingSlot');
 const { ParkingSpot } = require('../model/ParkingSpot');
 const { ParkingArea } = require('../model/ParkingArea');
-const { authentication } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 
@@ -20,7 +20,7 @@ router.get('/', async (req , res) =>{                                           
     }
 })
 
-router.post('/', authentication , async (req ,res) => {                                         //Admin can create Slots inside Parking with token
+router.post('/', auth , async (req ,res) => {                                         //Admin can create Slots inside Parking with token
     if(req.user.role !== 'admin') {  
         return res.status(400).json({msg: 'Only admin can create Parking Slots'})
     }

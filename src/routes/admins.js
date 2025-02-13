@@ -5,7 +5,7 @@ const Jwt = require('jsonwebtoken');
 const { User } = require('../model/User');
 const { Admin } = require('../model/Admin');
 const { Validation } = require('../model/validation');
-const { authentication } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const router = express.Router();
 
  
@@ -49,7 +49,7 @@ router.post('/login', async ( req , res)=>{                                     
     }
 })
 
-router.post('/user', authentication, async (req ,res)=>{                            //Admin can create user with token(headers or by pass in body)                                                                                                                  authentication(['admin'])
+router.post('/user', auth, async (req ,res)=>{                            //Admin can create user with token(headers or by pass in body)                                                                                                                  auth(['admin'])
     try {
         const {error} = Validation(req.body)
         if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
@@ -92,7 +92,7 @@ router.post('/user', authentication, async (req ,res)=>{                        
     }
 })
 
-router.post('/logout', authentication, async (req, res) =>{                         //Admin can logout
+router.post('/logout', auth, async (req, res) =>{                         //Admin can logout
     try {
         if (req.user.email !== req.body.email.trim().toLowerCase() ) {
             return res.status(400).json({ err: "Email in token doesn't match provided email" });
