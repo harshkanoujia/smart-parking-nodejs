@@ -1,5 +1,7 @@
+const Joi = require('joi')
 const mongoose = require('mongoose')
 
+// Parking Spot Model
 const ParkingSpot = mongoose.model('ParkingSpot', new mongoose.Schema({
     parkingSlotId: { type: mongoose.Schema.Types.ObjectId, ref: 'ParkingSlot' },
     vehicleType: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', default: null},

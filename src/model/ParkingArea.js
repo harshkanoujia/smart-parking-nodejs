@@ -1,5 +1,7 @@
+const Joi = require('joi')
 const mongoose = require('mongoose')
 
+// Parking Area Model
 const ParkingArea = mongoose.model('ParkingArea', new mongoose.Schema({
     createdBy: { type: mongoose.Types.ObjectId },    
     areaLocation: { type: String },
@@ -8,4 +10,20 @@ const ParkingArea = mongoose.model('ParkingArea', new mongoose.Schema({
     createdDate: { type: Number, default: Date.now()}
 }))
 
-module.exports.ParkingArea = ParkingArea;
+// Joi Validation --
+// Parking Area Create
+function validateParkingArea(user){
+    const Schema = Joi.object({
+        parkingAreaId: Joi.string().required(),
+        area: Joi.string().required(),    
+        areaLocation: Joi.string().required(),
+        allowedVehicle: Joi.string().required(),
+    })
+    return Schema.validate(user)
+}
+
+
+module.exports = {
+    ParkingArea,
+    validateParkingArea
+};
