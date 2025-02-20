@@ -13,7 +13,7 @@ const ParkingSpot = require('../routes/parkingSpots')
 module.exports = function(app){
     app.use(express.json())
 
-    app.use('/api/user',User)
+    app.use('/api/user', User)
     app.use('/api/admin', Admin)
     app.use('/api/vehicle', Vehicle)
     app.use('/api/booking', Booking)

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const config = require('config')
 mongoose.set('debug', true);
 
 // function connectMongoDb(){
@@ -8,8 +9,9 @@ mongoose.set('debug', true);
 // }
 
 const connectMongoDb = () => {
+    const db = config.get('MONGO_DB')
     try {
-        mongoose.connect(process.env.MONGO_DB)
+        mongoose.connect(db)
             .then(()=> console.log('MongoDb Connected...'))
             .catch((err)=> console.log({'MongoDb Connection error': err.message}))
     

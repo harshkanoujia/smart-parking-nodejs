@@ -1,3 +1,4 @@
+const config = require('config')
 const express = require('express');
 const mongoose = require('mongoose');
 const Bcrypt = require('bcrypt');
@@ -59,13 +60,13 @@ router.post('/login', async ( req , res)=>{                                     
         const verifyPassword = await Bcrypt.compare( req.body.password.trim(), checkUser.password )                     //It must to add trim here because if user give an extra space then it give us wrong password
         if(!verifyPassword) return res.status(400).json({ err: 'Password not match !'})
 
-        const token = Jwt.sign({ email: req.body.email.trim().toLowerCase() , role: checkUser.role, _id: checkUser._id }, process.env.JWT_SECRET_KEY , { expiresIn: '70d'});
+        const token = Jwt.sign({ email: req.body.email.trim().toLowerCase() , role: checkUser.role, _id: checkUser._id }, config.get('jwtPrivateKey') , { expiresIn: '70d'});
                 
         checkUser.token = token
         await checkUser.save()
 
         // res.status(200).json({msg: 'User Verify Successfully', Token : token})
-        res.status(200).send({ apiId:req.apiId, statuscode: 200,  message: 'Success', Time: timestamp.toString(), Token: token })
+        res.status(200).send({ apiId:req.apiId, statuscode: 200,  message: 'Success', Token: token })
     } catch (error) {
         console.log(error);
         if (error.name === 'ValidationError') {
