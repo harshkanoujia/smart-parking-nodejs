@@ -9,18 +9,18 @@ router.get('/', async (req, res) => {                                           
     try {
         const checkArea = await ParkingArea.find();
         // const checkArea = await ParkingArea.aggregate([ { $match: {}}]);
-        if (checkArea.length === 0) return res.status(400).json({ msg: 'No Area Found !' })
+        if (checkArea.length === 0) return res.status(400).send({ msg: 'No Area Found !' })
 
-        res.status(200).json({ "All Areas": checkArea })
+        res.status(200).send({ "All Areas": checkArea })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ msg: 'Server did not respond', err: error.message })
+        res.status(500).send({ msg: 'Server did not respond', err: error.message })
     }
 })
 
 router.post('/', auth, async (req, res) => {                                        //Admin can create parking inside slots with token
     if (req.user.role !== 'admin') {
-        return res.status(400).json({ msg: 'Only admin can create Parking' })
+        return res.status(400).send({ msg: 'Only admin can create Parking' })
     }
 
     try {
@@ -32,13 +32,13 @@ router.post('/', auth, async (req, res) => {                                    
         })
         await createArea.save()
 
-        res.status(201).json({ msg: "Parking Area created successfully By Admin", "ParkingArea": createArea })
+        res.status(201).send({ msg: "Parking Area created successfully By Admin", "ParkingArea": createArea })
     } catch (error) {
         console.log(error)
         if (error.name === 'ValidationError' || error.code === 11000) {
-            return res.status(400).json({ msg: 'Validation failed', err: error.message });
+            return res.status(400).send({ msg: 'Validation failed', err: error.message });
         }
-        res.status(500).json({ msg: 'Server did not respond', err: error.message })
+        res.status(500).send({ msg: 'Server did not respond', err: error.message })
     }
 })
 
@@ -51,13 +51,13 @@ router.get('/:id', async (req, res) => {                                        
         const checkArea = await ParkingArea.aggregate([
             { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } }
         ])
-        if (!checkArea) return res.status(400).json({ msg: "ID not found" })
+        if (!checkArea) return res.status(400).send({ msg: "ID not found" })
 
-        res.status(200).json({ 'ParkingArea': checkArea })
+        res.status(200).send({ 'ParkingArea': checkArea })
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({ msg: 'Server did not respond', err: error.message })
+        res.status(500).send({ msg: 'Server did not respond', err: error.message })
     }
 })
 

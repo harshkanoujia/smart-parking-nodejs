@@ -1,10 +1,10 @@
 const config = require("config");                                                                                                                                                           //Configuration management library to fetch environment-specific configs (like port, DB URL, etc.).
 const express = require('express')
-const { connectDb } = require('./startup/db');
 const app = express()
 
+
 // Connection with MongoDb
-connectDb();
+require('./startup/db')()
 
 //routes
 require('./startup/routes')(app)

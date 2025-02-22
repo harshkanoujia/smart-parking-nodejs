@@ -3,25 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Bcrypt = require('bcrypt');
 const Jwt = require('jsonwebtoken');
-const { User } = require('../model/User');
 const { Admin } = require('../model/Admin');
-const { Validation } = require('../model/validation');
 const { auth } = require('../middleware/auth');
 const router = express.Router();
 
- 
-router.get('/', async ( req , res)=>{                                               //All admin accounts
-    try {
-        const checkAdmin = await Admin.find();
-        // const checkAdmin = await Admin.aggregate([ { $match: {}}]);
-        if(checkAdmin.length === 0) return res.status(400).json({ msg: 'No Admin Found !'})
-        
-        res.status(200).json({ "Admins": checkAdmin })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({msg : 'Server did not respond', err: error.message})   
-    } 
-})
 
 router.post('/login', async ( req , res)=>{                                         //Admin can login
     try {
@@ -50,47 +35,16 @@ router.post('/login', async ( req , res)=>{                                     
     }
 })
 
-router.post('/user', auth, async (req ,res)=>{                            //Admin can create user with token(headers or by pass in body)                                                                                                                  auth(['admin'])
+router.get('/view/profile', async ( req , res)=>{                                               //All admin accounts
     try {
-        const {error} = Validation(req.body)
-        if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
+        const checkAdmin = await Admin.aggregate([ { $match: {}}]);
+        if(checkAdmin.length === 0) return res.status(400).json({ msg: 'No Admin Found !'})
         
-        if(req.user.role === 'user'){
-            return res.status(403).json({msg: 'Only Admin can create user'})
-        }
-        
-        const salt = await Bcrypt.genSalt(10)
-        const hashedPassword = await Bcrypt.hash(req.body.password.trim(), salt)
-
-        const createUser = new User({
-            username: req.body.username,
-            email: req.body.email.toLowerCase(),
-            password: hashedPassword,
-            phoneNo: req.body.phoneNo,
-            role: req.body.role
-        })
-
-        if(req.body.role === 'admin'){
-            const createAdmin = new Admin({
-                username: req.body.username,
-                email: req.body.email.toLowerCase(),
-                password: hashedPassword,
-                phoneNo: req.body.phoneNo,
-                role: req.body.role
-            })
-            await createAdmin.save()
-            res.status(201).json({msg:'Admin created Succesfully through Admin', 'Admin' : createAdmin});
-        }else{
-            await createUser.save()
-            res.status(201).json({msg:'User created Succesfully through Admin', 'User' : createUser});
-        } 
+        res.status(200).json({ "Admins": checkAdmin })
     } catch (error) {
-        console.log(error)
-        if (error.name === 'ValidationError' || error.code === 11000) {
-            return res.status(400).json({ msg: 'Validation failed', err: error.message });
-        }
-        res.status(500).json({msg : 'Server did not respond', err: error.message})
-    }
+        console.log(error);
+        res.status(500).json({msg : 'Server did not respond', err: error.message})   
+    } 
 })
 
 router.post('/logout', auth, async (req, res) =>{                         //Admin can logout
@@ -155,25 +109,6 @@ router.delete('/:id', async ( req , res)=>{                                     
         res.status(500).json({msg : 'Server did not respond', err: error.message})   
     }
 })
-
-router.get('/:id', async ( req , res)=>{                                            //Admin found by Id 
-    if(! mongoose.Types.ObjectId.isValid(req.params.id)){
-        return res.status(400).send('Invalid Id')
-    }
-    try {
-        // const checkAdmin = await Admin.findById(req.params.id);
-        const checkAdmin = await Admin.aggregate([ { $match: {_id:  new mongoose.Types.ObjectId(req.params.id)}}]);
-        if(!checkAdmin) return res.status(400).json({msg: "ID not found"})
-
-        res.status(200).json({"Admin": checkAdmin})
-    
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({msg : 'Server did not respond', err: error.message}) 
-    }
-    
-})
-
 
 module.exports = router;
 // // Admin account                                                                 //Signup for admin

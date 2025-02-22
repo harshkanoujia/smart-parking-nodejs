@@ -1,6 +1,8 @@
 const SYSTEM_FAILURE = "Something failed.";
 const INVALID_USER = "No user registered with given Id";
 const INACTIVE_ACCOUNT = "Account is not active. Please get in touch with app admin.";
+const PASSWORD_WRONG = 'Password not match !'
+const TOKEN = 'There might be a problem while generating Token. !'
 
 
 //admin.js
@@ -9,7 +11,9 @@ const ADMIN_CONSTANTS = {
     NOT_FOUND: 'No Admin account is found',
     VALIDATION_FAILED: 'Validation failed',
     SERVER_NOT_RESPOND: 'Server did not respond correctly',
-    INVALID_EMAIL: "Invalid username/password.",
+    INVALID_EMAIL: "Invalid email",
+    INVALID_PASSWORD: PASSWORD_WRONG,
+    TOKEN_NOT_GENREATE: TOKEN
 }
 
 // users.js

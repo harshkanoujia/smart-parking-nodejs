@@ -4,7 +4,7 @@ node_modules/
 # Environment variables
 .env
 
-#Configuration files    # * ignore json files
+#Configuration files    # * ignore send files
 /src/config/default.json 
 /src/config/*.json          
 

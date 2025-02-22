@@ -11,11 +11,11 @@ router.get('/', async (req , res) =>{                                           
         //     {$match: { }}
         // ])
         
-        res.status(200).json({ msg: " Spots", "All Spots that are Available " :allPrakingSlotsSpot})
+        res.status(200).send({ msg: " Spots", "All Spots that are Available " :allPrakingSlotsSpot})
     
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg : 'Server did not respond', err: error.message})  
+        res.status(500).send({msg : 'Server did not respond', err: error.message})  
     }
 })
 
