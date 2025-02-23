@@ -3,20 +3,17 @@ const { ParkingSpot } = require('../model/ParkingSpot');
 const router = express.Router();
 
 
-router.get('/', async (req , res) =>{                                                          //All Parking Slots 
-    try {
-        const allPrakingSlotsSpot = await ParkingSpot.find()
+// All Parking Slots
+router.get('/', async (req, res) => {                                                           
+
+    const parkingSpot = await ParkingSpot.aggregate([
+        {
+            $match: { }
+        }
+    ])
         
-        // const allPraking = await ParkingSlot.aggregate([
-        //     {$match: { }}
-        // ])
-        
-        res.status(200).send({ msg: " Spots", "All Spots that are Available " :allPrakingSlotsSpot})
-    
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({msg : 'Server did not respond', err: error.message})  
-    }
+    res.status(200).json({ msg: " Spots", "All Spots that are Available " : parkingSpot })
 })
+
 
 module.exports = router; 

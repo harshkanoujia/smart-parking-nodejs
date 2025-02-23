@@ -2,7 +2,6 @@ const config = require("config");                                               
 const express = require('express')
 const app = express()
 
-
 // Connection with MongoDb
 require('./startup/db')()
 

@@ -9,7 +9,7 @@ function auth() {
         req.startTimeMilli = Math.round(new Date());
 
         const token = req.headers('Authorization')
-        if (!token)  return res.status(401).send({ statuscode: 401, message: 'Failure', msg: AUTH_CONSTANTS.ACCESS_DENIED })
+        if (!token)  return res.status(401).json({ statuscode: 401, message: 'Failure', msg: AUTH_CONSTANTS.ACCESS_DENIED })
 
         try {
             const decode = Jwt.verify( token, config.get('jwtPrivateKey') )
@@ -17,7 +17,7 @@ function auth() {
             
         } catch (error) {
             console.log(error.message)
-            res.status(500).send({ msg: SYSTEM_FAILURE, err: error.message })
+            res.status(500).json({ msg: SYSTEM_FAILURE, err: error.message })
         }  
         next(); 
     }
