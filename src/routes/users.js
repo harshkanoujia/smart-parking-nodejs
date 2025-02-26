@@ -36,8 +36,11 @@ router.get('/', async (req, res) => {
             $match:{ }
         }
     ]); 
-    if (allUsers.length === 0)   return res.status(400).json({ msg: 'No User Found !'})
-        
+    if (users.length === 0)         // we can use one of this message
+        // return res.status(404).json({ msg: 'No User Found!' });       
+        // return res.status(200).json({ Users: [] });
+        return res.status(204).end();                                
+
     res.status(200).json({ "Users": users })
 })
 

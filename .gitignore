@@ -1,12 +1,9 @@
-# Node artifact files
+# Node files
 node_modules/
-
-# Environment variables
-.env
 
 #Configuration files    # * ignore send files
 /src/config/default.json 
 /src/config/*.json          
 
-#Now README.md not push
+#Now README file not push
 README.md
