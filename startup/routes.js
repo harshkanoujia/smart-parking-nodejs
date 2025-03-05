@@ -1,6 +1,8 @@
 const express = require('express')
 require("express-async-errors");
 
+const logger = require('../startup/logger');
+
 // Routes
 const User = require('../routes/users')
 const Admin = require('../routes/admins')
@@ -11,11 +13,13 @@ const ParkingSlot = require('../routes/parkingSlots')
 const ParkingSpot = require('../routes/parkingSpots')
 
 // Error Handling
-const error = require('../middleware/error')
+const error = require('../middleware/error');
 
 
 module.exports = function(app){
     app.use(express.json())
+
+    app.use(logger)
 
     app.use('/api/user', User)
     app.use('/api/admin', Admin)

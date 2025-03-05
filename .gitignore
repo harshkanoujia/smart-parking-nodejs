@@ -16,4 +16,3 @@ config/custom-environment-variables.json
 model/Manager.js
 routes/managers.js
 startup/seed.js
-startup/logger.js

@@ -14,6 +14,8 @@ module.exports = function ( err, req, res, next ) {
 
     console.log(`Error msg : ${err.message} \nError: ${err}`);
 
+    res.errorMessage = err.message;
+
     res.status(500)
     .json({ 
         apiId: req.apiId,
