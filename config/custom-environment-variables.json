@@ -1,0 +1,7 @@
+{
+    "environment": "devApp_environment",
+    "port": "parkingManagementSoftware_port",
+    "dbMlab": "devApp_dbMlab_string",
+    "jwtPrivateKey": "devApp_jwtPrivateKey",
+    "bcryptSalt": "devApp_bcryptSalt"
+}

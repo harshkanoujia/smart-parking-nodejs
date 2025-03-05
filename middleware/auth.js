@@ -5,8 +5,6 @@ const mongoose = require('mongoose');
 
 function auth() {
     return async ( req, res, next ) => {
-        req.apiId = new mongoose.Types.ObjectId();
-        req.startTimeMilli = Math.round(new Date());
 
         const token = req.headers('Authorization')
         if (!token)  return res.status(401).json({ statuscode: 401, message: 'Failure', msg: AUTH_CONSTANTS.ACCESS_DENIED })

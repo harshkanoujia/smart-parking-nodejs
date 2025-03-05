@@ -2,7 +2,7 @@ const config = require("config");                                               
 const express = require('express');
 const app = express();
 
-
+const { Seed } = require("./startup/seed");
 
 require("./startup/logging")();
 require('./startup/logger');
@@ -10,6 +10,7 @@ require('./startup/routes')(app);
 require('./startup/db')();
 require('./startup/prod')(app)
 
+Seed();
 
 
 //Start Server

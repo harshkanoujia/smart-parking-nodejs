@@ -1,31 +1,47 @@
-const config = require('config')
+const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 const express = require('express');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const Jwt = require('jsonwebtoken');
-const { Admin } = require('../model/Admin');
-const { auth } = require('../middleware/auth');
 const router = express.Router();
 
-// Admin can login
+const { Admin, validate } = require('../model/Admin');
+const { ADMIN_CONSTANTS } = require('../config/constant');
+
+
+// Admin login 
 router.post('/login', async (req, res) => {                                        
 
-    const {error} = Validation(req.body)
-    if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
+    // validate req.body
+    const {error} = validate(req.body);
+    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Validation failed', err: error.details[0].message });
     
-    const savedAdmin =  await Admin.findOne({ email: req.body.email.toLowerCase() })                                                                         //Im using toLowercase() here because it can not validate it if i give any capital letter
-    if(! savedAdmin) return res.status(400).json({err: 'Email not valid !'})
+    // email & password through req.body  
+    const email = req.body.email.toLowerCase().trim();
+    const password = req.body.password.trim();
+
+    // find if the email already exist or not 
+    const admin = await Admin.findOne({ email: email });
+    if (!admin) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: ADMIN_CONSTANTS.INVALID_EMAIL });
     
-    const verifyPassword = await bcrypt.compare( req.body.password.trim() , savedAdmin.password )                                                           //Im using trim here because it can not validate password if give space in token
-    if(!verifyPassword) return res.status(400).json({ err: 'Password not match !'})
+    // authentication 
+    const verifyPassword = await bcrypt.compare( password , admin.password );                                                           
+    if (!verifyPassword) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: ADMIN_CONSTANTS.INVALID_PASSWORD });
+
+    // genreate token
+    const token = admin.generateAuthToken();
+    admin.accessToken = token;
+    if (req.body.deviceToken) admin.deviceToken = req.body.deviceToken;
     
-    const token = Jwt.sign({ email: req.body.email.trim().toLowerCase() , role: savedAdmin.role, _id: savedAdmin._id }, config.get('jwtPrivateKey') , { expiresIn: '70d'});                      //im using trim and lowercase here because it can store directly body information in token
-    if(!token) return res.status(400).json({ err: 'There might be a problem while generating Token. !'})
-    
-    savedAdmin.token = token
-    await savedAdmin.save() 
-    
-    res.status(200).json({msg: 'Admin verified Successfully', Token: token})
+    await admin.save();
+
+    const response = _.pick(admin, [
+        "_id",
+        "email",
+        "status",
+        "createdDate" 
+    ]);
+
+    return res.header("Authorization", token).json({ apiId: req.apiId, statusCode: 200, message: "Success", data: response });
 })
 
 // All admin accounts
@@ -38,7 +54,7 @@ router.get('/profile', async (req, res) => {
 })
 
 // Admin can logout
-router.post('/logout', auth, async (req, res) => {                           
+router.post('/logout', async (req, res) => {                           
 
     if (req.user.email !== req.body.email.trim().toLowerCase() ) {
         return res.status(400).json({ err: "Email in token doesn't match provided email" });
@@ -77,46 +93,5 @@ router.put('/:id', async (req, res) => {
     res.status(201).json({msg: 'Admin Updated Successfully', Admin : savedAdmin})
 })
 
-// Admin delete own account
-router.delete('/:id', async (req, res) => {           
-
-    if(! mongoose.Types.ObjectId.isValid(req.params.id)){
-        return res.status(400).json('Invalid Id')
-    }
-
-    const deleteAdmin = await Admin.findByIdAndDelete(req.params.id)
-    if(!deleteAdmin) return res.status(400).json({msg: "ID not found"})
-
-    res.status(200).json({msg: 'Admin Deleted Successfully', Admin : deleteAdmin})
-
-})
 
 module.exports = router;
-
-// Signup for admin
-// // Admin account                                                                 
-// router.post('/signup', async (req, res) => {                                       
-//     try {
-//         // const {error} = Validation(req.body)
-//         // if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
-
-//         const salt = await bcrypt.genSalt()
-//         const hashedPassword = await bcrypt.hash(req.body.password, salt)
-
-//         const savedAdmin = new Admin({
-//             username: req.body.username,
-//             email: req.body.email,
-//             password: hashedPassword,
-//             role: req.body.role,
-//         })
-//         await savedAdmin.save()
-
-//         res.status(200).json({msg: 'Admin Created Successfully', Admin : savedAdmin})
-//     } catch (error) {
-//         console.log(error);
-//          if (error.name === 'ValidationError' || error.code === 11000) {
-//              return res.status(400).json({ msg: 'Validation failed', err: error.message });
-//           }
-//         res.status(500).json({msg : 'Server did not respond', err: error.message})   
-//     }
-// })

@@ -1,4 +1,4 @@
-const winston = require('winston')
+const winston = require('winston');
 
 
 // error handling 
@@ -12,7 +12,7 @@ module.exports = function ( err, req, res, next ) {
     if (err.code === 11000) 
         return res.status(400).json({ apiId: req.apiId, statusCode: 400, success: 'Failure', message: 'Duplicate Data not allowed', error: err.message });
 
-    console.log(`Error msg : ${err.message} \nError: ${err}`);
+    console.log(`Error msg : ${err.message} \n`);
 
     res.errorMessage = err.message;
 
@@ -22,5 +22,5 @@ module.exports = function ( err, req, res, next ) {
         statusCode: 500,
         success: 'Failure',
         message: err.message || 'Internal Server Error'
-    })
+    });
 }

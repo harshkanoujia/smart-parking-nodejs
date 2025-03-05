@@ -4,15 +4,13 @@ node_modules/
 
 #logs files
 /logs
-*.log
-
 
 #Configuration files
 config/default.json 
 
 #Now README file not push
-README.md
-config/custom-environment-variables.json
+README.txt
+
+# manager role
 model/Manager.js
 routes/managers.js
-startup/seed.js
