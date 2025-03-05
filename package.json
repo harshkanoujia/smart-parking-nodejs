@@ -18,7 +18,7 @@
   "author": "Harsh",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
     "config": "^3.3.12",
     "cors": "^2.8.5",

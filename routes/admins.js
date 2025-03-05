@@ -1,7 +1,7 @@
 const config = require('config')
 const express = require('express');
 const mongoose = require('mongoose');
-const Bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const Jwt = require('jsonwebtoken');
 const { Admin } = require('../model/Admin');
 const { auth } = require('../middleware/auth');
@@ -16,7 +16,7 @@ router.post('/login', async (req, res) => {
     const savedAdmin =  await Admin.findOne({ email: req.body.email.toLowerCase() })                                                                         //Im using toLowercase() here because it can not validate it if i give any capital letter
     if(! savedAdmin) return res.status(400).json({err: 'Email not valid !'})
     
-    const verifyPassword = await Bcrypt.compare( req.body.password.trim() , savedAdmin.password )                                                           //Im using trim here because it can not validate password if give space in token
+    const verifyPassword = await bcrypt.compare( req.body.password.trim() , savedAdmin.password )                                                           //Im using trim here because it can not validate password if give space in token
     if(!verifyPassword) return res.status(400).json({ err: 'Password not match !'})
     
     const token = Jwt.sign({ email: req.body.email.trim().toLowerCase() , role: savedAdmin.role, _id: savedAdmin._id }, config.get('jwtPrivateKey') , { expiresIn: '70d'});                      //im using trim and lowercase here because it can store directly body information in token
@@ -63,8 +63,8 @@ router.put('/:id', async (req, res) => {
     const {error} = Validation(req.body)
     if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
         
-    const salt = await Bcrypt.genSalt()
-    const hashedPassword = await Bcrypt.hash(req.body.password, salt)
+    const salt = await bcrypt.genSalt()
+    const hashedPassword = await bcrypt.hash(req.body.password, salt)
 
     const savedAdmin = await Admin.findByIdAndUpdate(req.params.id, {
         username: req.body.username,
@@ -100,8 +100,8 @@ module.exports = router;
 //         // const {error} = Validation(req.body)
 //         // if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
 
-//         const salt = await Bcrypt.genSalt()
-//         const hashedPassword = await Bcrypt.hash(req.body.password, salt)
+//         const salt = await bcrypt.genSalt()
+//         const hashedPassword = await bcrypt.hash(req.body.password, salt)
 
 //         const savedAdmin = new Admin({
 //             username: req.body.username,

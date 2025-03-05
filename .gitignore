@@ -1,8 +1,19 @@
 # Node files
 node_modules/
 
-#Configuration files    # * ignore send files
+
+#logs files
+/logs
+*.log
+
+
+#Configuration files
 config/default.json 
 
 #Now README file not push
 README.md
+config/custom-environment-variables.json
+model/Manager.js
+routes/managers.js
+startup/seed.js
+startup/logger.js

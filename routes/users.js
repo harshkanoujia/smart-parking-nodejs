@@ -1,7 +1,7 @@
 const config = require('config')
 const express = require('express');
 const mongoose = require('mongoose');
-const Bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const Jwt = require('jsonwebtoken');
 const { User } = require('../model/User');
 const { auth } = require('../middleware/auth');
@@ -14,8 +14,8 @@ router.post('/signup', async (req, res) => {
     const {error} = Validation(req.body)
     if (error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
       
-    const salt = await Bcrypt.genSalt(10)
-    const hashedPassword = await Bcrypt.hash( req.body.password.trim(), salt )                        //We add trim here because it does not store the password with trimming it. So we explicity add it
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash( req.body.password.trim(), salt )                        //We add trim here because it does not store the password with trimming it. So we explicity add it
     
     const newUser = new User({
         username: req.body.username,
@@ -53,7 +53,7 @@ router.post('/login', async (req, res) => {
     const checkUser = await User.findOne({ email: req.body.email.toLowerCase() })                                   //using here lowercase because if user give input in uppercase it can't validate it
     if (!checkUser) return res.status(400).json({msg: "Email not found"})  
         
-    const verifyPassword = await Bcrypt.compare( req.body.password.trim(), checkUser.password )                     //It must to add trim here because if user give an extra space then it give us wrong password
+    const verifyPassword = await bcrypt.compare( req.body.password.trim(), checkUser.password )                     //It must to add trim here because if user give an extra space then it give us wrong password
     if (!verifyPassword) return res.status(400).json({ err: 'Password not match !'})
     
     const token = Jwt.sign({ email: req.body.email.trim().toLowerCase() , role: checkUser.role, _id: checkUser._id }, config.get('jwtPrivateKey') , { expiresIn: '70d'});
@@ -89,8 +89,8 @@ router.put('/:id', async (req, res) => {
     if (error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
         
     
-    const salt = await Bcrypt.genSalt()
-    const hashedPassword = await Bcrypt.hash(req.body.password, salt)
+    const salt = await bcrypt.genSalt()
+    const hashedPassword = await bcrypt.hash(req.body.password, salt)
     
     const savedUser = await User.findByIdAndUpdate(req.params.id, {      //using mongoose queries
       $set: { 
