@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Jwt = require('jsonwebtoken');
 const { Manager } = require('../model/Manager');
-const { identityManager } = require('../0) Project/middleware/auth');
+const { identityManager } = require('../middleware/auth');
 const router = express.Router();
 
 
