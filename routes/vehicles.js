@@ -1,27 +1,24 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { Vehicle } = require('../model/Vehicle');
-const { auth } = require('../middleware/auth');
 const router = express.Router();
 
- 
-// User can create vehicle
-router.post('/', auth ,async (req, res) => {                                  
+const { Vehicle } = require('../model/Vehicle');
+const { identityManager } = require('../middleware/auth');
 
-    if (req.user._id !== req.body.ownerId) {
-        return res.status(400).json({ msg: 'Please provide valid token. Does not match with OwnerID !'})
-    }
+
+// User can create vehicle
+router.post('/', identityManager(['manager', 'user']) ,async (req, res) => {                                  
     
-    const newVehicle = new Vehicle({
+    const vehicle = new Vehicle({
         ownerId: req.body.ownerId,
         vehicleType: req.body.vehicleType,
         modelNo: req.body.modelNo,
         numberPlate: req.body.numberPlate,
         vehicleBrand: req.body.vehicleBrand
     })
-    await newVehicle.save()
+    await vehicle.save()
     
-    res.status(200).json({ msg: 'User Created Vehicle Successfully', Vehicle : newVehicle })
+    res.status(200).json({ msg: 'User Created Vehicle Successfully', Vehicle : vehicle })
 })
 
 // All vehicles register 

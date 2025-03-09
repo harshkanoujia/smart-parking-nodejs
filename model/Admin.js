@@ -31,8 +31,8 @@ adminSchema.methods.generateAuthToken = function () {
     return token;
 }
 
-adminSchema.index({ role: 1, email: 1 }, { unique: true });
-adminSchema.index({ phoneNo: 1 }, { unique: true });
+// composite index 
+adminSchema.index({ phoneNo: 1, email: 1 }, { unique: true });
 
 const Admin = mongoose.model('Admin', adminSchema );
 

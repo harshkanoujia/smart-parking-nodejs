@@ -1,5 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 const { Booking } = require('../model/Booking');
 const { Vehicle } = require('../model/Vehicle');
 const { ParkingSlot } = require('../model/ParkingSlot');

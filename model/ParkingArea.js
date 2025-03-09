@@ -1,14 +1,17 @@
-const Joi = require('joi')
-const mongoose = require('mongoose')
+const Joi = require('joi');
+const mongoose = require('mongoose');
 
-// Parking Area Model
+
+// Parking Area Schema
 const ParkingArea = mongoose.model('ParkingArea', new mongoose.Schema({
     createdBy: { type: mongoose.Types.ObjectId },    
     areaLocation: { type: String },
-    area: { type: String , enum:[ 'P1', 'P2', 'P3', 'P4']},
+    area: { type: String, enum:[ 'P1', 'P2', 'P3', 'P4']},
     allowedVehicle: { type: String, enum: [ 'bike', 'car', 'truck', 'bus' ], required: true },      //handling validation error 
+    pricingPerHour: { type: Number, required: true },
     createdDate: { type: Number, default: Date.now()}
 }))
+
 
 // Joi Validation --
 // Parking Area Create

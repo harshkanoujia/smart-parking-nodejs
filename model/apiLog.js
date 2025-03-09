@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const apiLogSchema = new mongoose.Schema( {
     apiId: { type: String },
@@ -19,9 +19,9 @@ const apiLogSchema = new mongoose.Schema( {
     creationDate: { type: String, default: () => { return new Date() } }
 });
 
-apiLogSchema.index({ creationDate: 1 }, { expireAfterSeconds: 90 * 86400 }); // Delete log after 90 days.
+// apiLogSchema.index({ creationDate: 1 }, { expireAfterSeconds: 90 * 86400 }); // Delete log after 90 days.
 
-const ApiLog = mongoose.model('ApiLog', apiLogSchema)
+const ApiLog = mongoose.model('ApiLog', apiLogSchema);
 
 
 module.exports = ApiLog ;

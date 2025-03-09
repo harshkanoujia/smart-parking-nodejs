@@ -12,9 +12,34 @@ const ADMIN_CONSTANTS = {
     VALIDATION_FAILED: 'Validation failed',
     SERVER_NOT_RESPOND: 'Server did not respond correctly',
     INVALID_EMAIL: "Invalid email",
+    BLOCKED_ACCOUNT: "Your account is blocked. Please contact admin.",
+    NOTIFICATION_SUCCESS: "Notificaiton submitted successfully",
+    DUPLICATE_MANAGER: "MANAGER with given email already exists.",
+    MANAGER_SUBMIT_SUCCESS: "MANAGER added successfully",
+    MANAGER_DELETE_SUCCESS: "MANAGER deleted  successfully",
+    MANAGER_UPDATE_SUCCESS: "MANAGER updated successfully",
+    INVALID_MANAGER: "No MANAGER with given Id found.",
+    DUPLICATE_DATA: "Email which you are trying to submit for this manager is already taken",
+    SYSTEM_FAILURE: SYSTEM_FAILURE,
     INVALID_PASSWORD: PASSWORD_WRONG,
     TOKEN_NOT_GENREATE: TOKEN
 }
+
+// manager.js
+const MANAGER_CONSTANTS = {
+  INACTIVE_ACCOUNT: INACTIVE_ACCOUNT,
+  INVALID_USER: INVALID_USER,
+  MOBILE_EMAIL_ALREADY_EXISTS: "Mobile and email are already registered",
+  EMAIL_ALREADY_EXISTS: "Email already registered",
+  MOBILE_ALREADY_EXISTS: "Mobile number already registered",
+  USERNAME_ALREADY_EXISTS: "UserName already registered",
+  ALL_CHECKS_VALID: "All check are valid. Proceed for OTP",
+  INVALID_OTP: "Invalid OTP passed",
+  OTP_MISSING: "No OTP passed. OTP is required for registration.",
+  OTP_MISSING_UPDATE: "No OTP passed. OTP is required for update.",
+  LOGGED_OUT: "Logged Out successfully",
+  VERIFICATION_SUCCESS: "Continue for OTP."
+};
 
 // users.js
 const USER_CONSTANTS = {
@@ -35,8 +60,10 @@ const USER_CONSTANTS = {
 // auth.js
 const AUTH_CONSTANTS = {
   INVALID_USER: INVALID_USER,
+  INVALID_AUTH_TOKEN: "Invalid Token.",
+  EXPIRED_TOKEN: "Token has been expired.",
+  VERIFICATION_FAILED: "Token verification failed.",
   ACCESS_DENIED: "Access denied. No authorization token provided",
-  INVALID_AUTH_TOKEN: "Invalid token",
   RESOURCE_FORBIDDEN: "You don't have access to the request resource.",
   TOKEN_NOT_GENREATE: "There might be a problem while generating Token. !",
   INVALID_CREDENTIALS: "Invalid email/userName or password",
@@ -113,5 +140,6 @@ module.exports = {
   USER_CONSTANTS,
   BOOKING_CONSTANTS,
   OTP_CONSTANTS,
-  SYSTEM_FAILURE
+  SYSTEM_FAILURE,
+  MANAGER_CONSTANTS
 }

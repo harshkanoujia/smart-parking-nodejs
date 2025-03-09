@@ -1,7 +1,8 @@
-const Joi = require('joi')
+const Joi = require('joi');
 const mongoose = require('mongoose');
 
-// Booking Model
+
+// Booking Schema
 const Booking = mongoose.model('Booking', new mongoose.Schema( {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     vehicleId: {type: mongoose.Schema.Types.ObjectId, ref:'Vehicle', required:true },
@@ -11,7 +12,8 @@ const Booking = mongoose.model('Booking', new mongoose.Schema( {
     bookingDate: { type: Number , default: Date.now },                    
     days: { type: Number , default: 0 },                    
     hours: { type: Number , default: 0 },                                                                        
-}))
+}));
+
 
 // Joi Validations --
 // Booking create
@@ -22,16 +24,16 @@ function validateBookingCreate(user){
         userId: Joi.string().required(),
         days: Joi.string(),
         hours: Joi.string()
-    })
-    return Schema.validate(user)
+    });
+    return Schema.validate(user);
 }
 
 // Booking Complete
 function validateBookingComplete(user){
     const Schema = Joi.object({
         bookingId: Joi.string().required(),    
-    })
-    return Schema.validate(user)
+    });
+    return Schema.validate(user);
 }
 
 module.exports = {

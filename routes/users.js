@@ -1,31 +1,33 @@
-const config = require('config')
+const _ = require('lodash');
+const config = require('config');
+const bcrypt = require('bcryptjs');
 const express = require('express');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const Jwt = require('jsonwebtoken');
-const { User } = require('../model/User');
-const { auth } = require('../middleware/auth');
 const router = express.Router();
+
+const { User, validateUserRegister } = require('../model/User');
+const { identityManager } = require('../middleware/auth');
 
 
 // User can signup 
 router.post('/signup', async (req, res) => {                                                
     
-    const {error} = Validation(req.body)
+    const {error} = validateUserRegister(req.body)
     if (error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
       
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash( req.body.password.trim(), salt )                        //We add trim here because it does not store the password with trimming it. So we explicity add it
     
-    const newUser = new User({
-        username: req.body.username,
-        email: req.body.email.toLowerCase(),
-        phoneNo: req.body.phoneNo,
-        password: hashedPassword,
-    })
-    await newUser.save()
+    if (req.body.deviceToken) {
+        await User.updateMany(
+          { deviceToken: req.body.deviceToken, mobile: { $ne: user.mobile } },
+          { $set: { deviceToken: "" } }
+        );
+    }
+
+    await user.save()
     
-    res.status(200).json({ msg: 'User Created Successfully', User : newUser })
+    res.status(200).json({ msg: 'User Created Successfully', User : user })
 })
 
 // All users accounts
@@ -50,33 +52,34 @@ router.post('/login', async (req, res) => {
     const {error} = Validation(req.body)
     if (error) return res.status(400).json({ msg: 'Validation failed', err: error.details[0].message})
             
-    const checkUser = await User.findOne({ email: req.body.email.toLowerCase() })                                   //using here lowercase because if user give input in uppercase it can't validate it
-    if (!checkUser) return res.status(400).json({msg: "Email not found"})  
+    const user = await User.findOne({ email: req.body.email.toLowerCase() })                                   //using here lowercase because if user give input in uppercase it can't validate it
+    if (!user) return res.status(400).json({msg: "Email not found"})  
         
     const verifyPassword = await bcrypt.compare( req.body.password.trim(), checkUser.password )                     //It must to add trim here because if user give an extra space then it give us wrong password
     if (!verifyPassword) return res.status(400).json({ err: 'Password not match !'})
     
     const token = Jwt.sign({ email: req.body.email.trim().toLowerCase() , role: checkUser.role, _id: checkUser._id }, config.get('jwtPrivateKey') , { expiresIn: '70d'});
             
-    checkUser.token = token
-    await checkUser.save()
+    user.token = token
+    await user.save()
 
     res.status(200).json({ statuscode: 200,  message: 'Success', Token: token })
 })
 
 // User can logout with providing email and token in headers
-router.post('/logout', auth, async (req, res) => {                                   
+router.post('/logout', async (req, res) => {                                   
 
     if (req.user.email !== req.body.email.trim().toLowerCase() ) {
         return res.status(400).json({ msg: 'Email in Token does not match with provided email'})
     }
-    const checkUser = await User.findOne({ email: req.body.email.trim().toLowerCase() })                                 
-    if (!checkUser) return res.status(400).json({ err: "Invalid email" })
+
+    const user = await User.findOne({ email: req.body.email.trim().toLowerCase() })                                 
+    if (!user) return res.status(400).json({ err: "Invalid email" })
     
-    checkUser.token = ""
-    await checkUser.save()
+    user.token = ""
+    await user.save()
     
-    res.status(200).json({ msg: "Successfully Logout", "User": checkUser })
+    res.status(200).json({ msg: "Successfully Logout", "User": user })
 })
 
 // User can update own account
@@ -123,16 +126,16 @@ router.get('/:id', async (req, res) => {
         return res.status(400).json('Invalid Id')
     }
 
-    const checkUsers = await User.aggregate([   
+    const user = await User.aggregate([   
         { 
             $match: {
                 _id: new mongoose.Types.ObjectId(req.params.id)
             } 
         }
     ]);
-    if (!checkUsers) return res.status(400).json({err: "ID not found"})
+    if (!user) return res.status(400).json({err: "ID not found"})
         
-    res.status(200).json({'User': checkUsers })
+    res.status(200).json({'User': user })
 })
 
 

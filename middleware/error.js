@@ -12,7 +12,7 @@ module.exports = function ( err, req, res, next ) {
     if (err.code === 11000) 
         return res.status(400).json({ apiId: req.apiId, statusCode: 400, success: 'Failure', message: 'Duplicate Data not allowed', error: err.message });
 
-    console.log(`Error msg : ${err.message} \n`);
+    console.log(`Error msg from Middleware : ${err.message} \n`);
 
     res.errorMessage = err.message;
 
@@ -20,7 +20,7 @@ module.exports = function ( err, req, res, next ) {
     .json({ 
         apiId: req.apiId,
         statusCode: 500,
-        success: 'Failure',
-        message: err.message || 'Internal Server Error'
+        message: 'Failure',
+        error: err.message || 'Internal Server Error'
     });
 }

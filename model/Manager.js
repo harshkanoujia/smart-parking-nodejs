@@ -3,13 +3,13 @@ const config = require('config');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
-
-// User Schema
-const userSchema = new mongoose.Schema({
+ 
+// Manager schema 
+const managerSchema = new mongoose.Schema({
     fullName: { type: String, trim: true, required: true },                                                                                                                                                         
     email: { type: String, trim: true },                                                                                                                                                               
-    phoneNo: { type: String, trim: true , unique: true, required: true},
     password: { type: String, trim: true },
+    phoneNo: { type: String, unique: true, trim: true , required: true},
     gender: { type: String, enum: ['male', 'female', 'other'], trim: true, required: true },                                                                                                                                                                            
     profilePic: {  type: String, default: "" },
     
@@ -29,16 +29,15 @@ const userSchema = new mongoose.Schema({
     deleteDate : { type: Number },
     deletedBy : { type: mongoose.Schema.Types.ObjectId, default: null },
     isDeleted: { type: Boolean, default: false }
-})                       
+});
 
-// genreate auth token
-userSchema.methods.generateAuthToken = function () {
+managerSchema.methods.generateAuthToken = function () {
     const token = jwt.sign(
         {
-            userId: this._id,
+            managerId: this._id,
             email: this.email,
             phoneNo: this.phoneNo,
-            role: 'user'
+            role: 'manager'
         },
         config.get('jwtPrivateKey'),
         { expiresIn: '30d' }
@@ -46,54 +45,54 @@ userSchema.methods.generateAuthToken = function () {
     return token;
 }
 
-userSchema.index({ email: 1 , phoneNo: 1 }, { unique: true })
+managerSchema.index({ email: 1, phoneNo: 1 }, { unique: true });
 
-const User = mongoose.model('User', userSchema );
+const Manager = mongoose.model( 'Manager', managerSchema );
+       
 
-
-// Joi Validation --
-// user register
-function validateUserRegister(user){
-    const Schema = Joi.object({
-        fullName: Joi.string().min(3).max(20),
-        email: Joi.string().email().max(150).trim(),    
-        phoneNo: Joi.string().min(10).max(12).required(),
-        password: Joi.string().min(6).max(250).required(),
-        gender: Joi.string().valid('male', 'female', 'other').required(),
+// Joi Validations --
+// manager register by admin
+function validateManagerRegister(req){
+    const Schema = Joi.object({   
+        fullName: Joi.string().min(3).max(20).trim().required(),
+        email: Joi.string().min(5).max(255).email().trim().allow("").allow(null),
+        phoneNo: Joi.string().min(10).max(15).required(),
+        password: Joi.string().min(5).max(255).required(),
+        gender: Joi.string().valid('male', 'female', 'other').allow("").allow(null),
         profilePic: Joi.string().allow("").allow(null),
-        deviceToken: Joi.string().min(1).max(200).allow(""),
+        deviceToken: Joi.string().min(1).max(200).allow("").allow(null)
     })
-    return Schema.validate(user)
+    return Schema.validate(req)
 }
 
-// user login
-function validateUserLogin(user){
+// manager login
+function validateManagerLogin(manager){
     const Schema = Joi.object({
         email: Joi.string().email().max(150).trim(),    
-        phoneNo: Joi.string().min(10).max(12),
-        password: Joi.string().min(6).max(250).required(),
+        password: Joi.string().min(6).max(250).trim().required(),
+        phoneNo: Joi.string().min(10).max(12).trim(),
     })
-    return Schema.validate(user)
+    return Schema.validate(manager)
 }
 
-// user update
-function validateUserUpdate(user){
+// manager update
+function validateManagerUpdate(manager){
     const Schema = Joi.object({
         fullName: Joi.string().min(3).max(20),
-        email: Joi.string().email().max(150).trim().allow(null).allow(""),    
+        email: Joi.string().email().max(150).trim().required(),    
+        password: Joi.string().min(3).max(250).required(),           // forgot password
         phoneNo: Joi.string().min(10).max(12).allow(null).allow(""),
-        // password: Joi.string().min(3).max(250).allow(""),    // forgot password
-        deviceToken: Joi.string().min(1).max(250),
-        profilePic: Joi.string().allow(""),
+        deviceToken: Joi.string().min(1).max(250).allow(null).allow(""),
+        profilePic: Joi.string().allow("").allow(null),
         status: Joi.string().valid("active", "inactive", "blocked", "suspended"),
-        gender: Joi.string().valid('male', 'female', 'other')
+        gender: Joi.string().valid('male', 'female', 'other').allow(null).allow("")
     })
-    return Schema.validate(user)
+    return Schema.validate(manager)
 }
 
 module.exports = {
-    User,
-    validateUserRegister,
-    validateUserLogin,
-    validateUserUpdate
+    Manager,
+    validateManagerRegister,
+    validateManagerLogin,
+    validateManagerUpdate
 }

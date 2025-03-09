@@ -1,15 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { ParkingArea } = require('../model/ParkingArea');
-const { auth } = require('../middleware/auth');
+const { identityManager } = require('../middleware/auth');
 const router = express.Router();
 
 
 // create parking Area
-router.post('/', auth, async (req, res) => {                                        
-    if (req.user.role !== 'admin') {
-        return res.status(400).json({ msg: 'Only admin can create Parking' })
-    }
+router.post('/', identityManager([ 'admin', 'manager' ]), async (req, res) => {                                        
 
     const createArea = new ParkingArea({
         createdBy: req.user._id,                                                    //In this whose token we providing that will be the owner of parking Area and include Id in createdBy

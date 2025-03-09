@@ -31,7 +31,7 @@ module.exports = function (req, res, next) {
     // api req save in db when res complete 
     const loggerFunction = async () => {
         cleanup();
-        console.log("Before logging : ", res.req.apiId, "\n" )
+        // console.log("Before logging : ", res.req.apiId, "\n" )   
 
         try {
             // console.log("REQUEST ===> ", req, "\n" )     // IncomingMessage

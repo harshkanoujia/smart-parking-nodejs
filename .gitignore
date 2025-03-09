@@ -10,7 +10,3 @@ config/default.json
 
 #Now README file not push
 README.txt
-
-# manager role
-model/Manager.js
-routes/managers.js

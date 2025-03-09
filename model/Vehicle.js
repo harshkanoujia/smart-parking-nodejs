@@ -1,7 +1,7 @@
-const Joi = require('joi')
-const mongoose = require('mongoose')
+const Joi = require('joi');
+const mongoose = require('mongoose');
 
-// User-Vehicle Model
+// User-Vehicle Schema
 const Vehicle = mongoose.model('Vehicle', new mongoose.Schema( {
     ownerId : { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     vehicleType: { type: String, enum: ['bus', 'car', 'bike', 'truck'] , required: true },
@@ -10,6 +10,7 @@ const Vehicle = mongoose.model('Vehicle', new mongoose.Schema( {
     vehicleBrand: { type: String, required: true},
     createdDate: { type: Number , default: Date.now }
 }))
+
 
 // Joi Validation --
 // vehicle create
