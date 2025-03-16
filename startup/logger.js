@@ -6,7 +6,7 @@ const ApiLog = require('../model/ApiLog');
 // API req and res log maintain
 module.exports = function (req, res, next) {
 
-    // check environment req._baseUrl = req.baseUrl || req.originalUrl;
+    // check environment 
     if (config.get('environment') === 'dev') {
         console.log({
             host: req.headers["host"],

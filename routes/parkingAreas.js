@@ -7,7 +7,6 @@ const router = express.Router();
 
 // create parking Area
 router.post('/', identityManager([ 'admin', 'manager' ]), async (req, res) => {                                        
-
     const createArea = new ParkingArea({
         createdBy: req.user._id,                                                    //In this whose token we providing that will be the owner of parking Area and include Id in createdBy
         area: req.body.area,
