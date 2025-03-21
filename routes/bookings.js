@@ -215,19 +215,19 @@ router.get('/user', async (req, res) => {
                 vehicleId: 0,
                 parkingAreaId: 0,
                 status: 0,
-                "Parking Area.createdDate": 0,
+                "Parking Area.creationDate": 0,
                 "Parking Area._id": 0,
                 "Parking Area.Owner._id": 0,
                 "Parking Area.Owner.password": 0,
-                "Parking Area.Owner.createdDate": 0,
+                "Parking Area.Owner.creationDate": 0,
                 "Parking Area.Owner.token": 0,
                 "Vehicle._id": 0,
-                "Vehicle.createdDate": 0,
+                "Vehicle.creationDate": 0,
                 "Vehicle.ownerId": 0,
                 "Vehicle.User Profile._id": 0,
                 "Vehicle.User Profile.password": 0,
                 "Vehicle.User Profile.token": 0,
-                "Vehicle.User Profile.createdDate": 0,
+                "Vehicle.User Profile.creationDate": 0,
                 "Vehicle.__v": 0,
                 "Vehicle.User Profile.__v": 0,
                 "Parking Area.__v": 0,
@@ -271,20 +271,20 @@ router.get('/user/history', async (req, res) => {
         {   $unwind: "$Parking Area"  },
         {
             $addFields: { 
-                "User.userTimestamp": { $toDate : "$User.createdDate"},
+                "User.userTimestamp": { $toDate : "$User.creationDate"},
                 timestamp: { $toDate : "$bookingDate"}
             }
         },
         {
             $addFields: {
-                "User.createdDateString": {
+                "User.creationDateString": {
                     $dateToString: {
                         format: "%Y-%m-%d %H:%M:%S",
                         date: "$User.userTimestamp",
                         // timezone: "Asia/Kolkata"             // Adjust to your timezone
                     },
                 },
-                createdDateString: {
+                creationDateString: {
                     $dateToString: {
                         format: "%Y-%m-%d %H:%M:%S",            // Customize format as needed
                         date: "$timestamp",
@@ -303,7 +303,7 @@ router.get('/user/history', async (req, res) => {
                         email: "$User.email",
                         phoneNo: "$User.phoneNo",
                         role: "$User.role",
-                        createdDate: "$User.createdDateString"          // Formatted user creation date
+                        creationDate: "$User.creationDateString"          // Formatted user creation date
                     }
                 },
                 parkingArea: { $first: "$Parking Area"},
@@ -314,7 +314,7 @@ router.get('/user/history', async (req, res) => {
                         spotNo: "$spotNo",
                         days: "$days",
                         hours: "$hours",
-                        bookingDate: "$createdDateString",
+                        bookingDate: "$creationDateString",
                     }
                 }
             }
@@ -326,7 +326,7 @@ router.get('/user/history', async (req, res) => {
                 "user._id": 0,
                 "user.token": 0,
                 "user.password": 0,
-                "parkingArea.createdDate": 0,
+                "parkingArea.creationDate": 0,
                 "parkingArea._id": 0,
                 "parkingArea.__v": 0,
                 __v:0,

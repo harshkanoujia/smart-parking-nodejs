@@ -22,10 +22,25 @@ const managerSchema = new mongoose.Schema({
     accessToken: { type: String, default: "" },                              
     deviceToken: { type: String, default: "" },                           
     
-    createdDate: { type: String, default: () => { return new Date() } },
-    insertDate: { type: Number , default: () => { return Math.round(new Date() / 1000) } },
-    lastUpdatedDate: { type: Number , default: function() { return this.insertDate } },
-    
+    insertDate: {
+        type: Number,
+        default: () => {
+            return Math.round(new Date() / 1000);        
+        }
+    },
+    creationDate: {
+        type: String,
+        default: () => {
+            return new Date();
+        }
+    },
+    lastUpdatedDate: {
+        type: Number,
+        default: () => {
+            return Math.round(new Date() / 1000);
+        }
+    },
+
     deleteDate : { type: Number },
     deletedBy : { type: mongoose.Schema.Types.ObjectId, default: null },
     isDeleted: { type: Boolean, default: false }

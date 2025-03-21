@@ -1,10 +1,11 @@
-const config = require('config')
+const config = require('config');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-const { AUTH_CONSTANTS , SYSTEM_FAILURE } = require('../config/constant');
+
+const { User } = require('../model/User');
 const { Admin } = require('../model/Admin');
 const { Manager } = require('../model/Manager');
-const { User } = require('../model/User');
+const { AUTH_CONSTANTS } = require('../config/constant');
 
 
 // Token verify and role check
@@ -72,8 +73,8 @@ function identityManager(allowedRolesArray) {
                 if (!admin || (admin && admin.accessToken !== token))
                 return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
-                req.adminData = admin;
-                req.reqId = decode._id;
+                req.userData = admin;
+                req.reqUserId = decode._id;
                 break;
 
             case "manager":
@@ -81,8 +82,8 @@ function identityManager(allowedRolesArray) {
                 if (!manager || (manager && manager.accessToken !== token))
                     return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
-                req.managerData = manager;
-                req.reqId = decode._id;
+                req.userData = manager;
+                req.reqUserId = decode._id;
                 break;
 
             case "user":
@@ -91,7 +92,7 @@ function identityManager(allowedRolesArray) {
                     return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
                 req.userData = user;
-                req.reqId = decode._id;
+                req.reqUserId = decode._id;
                 break;
                 
             default:

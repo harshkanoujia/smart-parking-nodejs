@@ -1,60 +1,66 @@
 const SYSTEM_FAILURE = "Something failed.";
 const INVALID_USER = "No user registered with given Id";
 const INACTIVE_ACCOUNT = "Account is not active. Please get in touch with app admin.";
-const PASSWORD_WRONG = 'Password not match !'
 const TOKEN = 'There might be a problem while generating Token. !'
+
 
 
 //admin.js
 const ADMIN_CONSTANTS = {
-    INVALID_ADMIN: 'The Admin is not valid',
-    NOT_FOUND: 'No Admin account is found',
-    VALIDATION_FAILED: 'Validation failed',
-    SERVER_NOT_RESPOND: 'Server did not respond correctly',
-    INVALID_EMAIL: "Invalid email",
-    BLOCKED_ACCOUNT: "Your account is blocked. Please contact admin.",
-    NOTIFICATION_SUCCESS: "Notificaiton submitted successfully",
-    DUPLICATE_MANAGER: "MANAGER with given email already exists.",
-    MANAGER_SUBMIT_SUCCESS: "MANAGER added successfully",
-    MANAGER_DELETE_SUCCESS: "MANAGER deleted  successfully",
-    MANAGER_UPDATE_SUCCESS: "MANAGER updated successfully",
-    INVALID_MANAGER: "No MANAGER with given Id found.",
-    DUPLICATE_DATA: "Email which you are trying to submit for this manager is already taken",
-    SYSTEM_FAILURE: SYSTEM_FAILURE,
-    INVALID_PASSWORD: PASSWORD_WRONG,
-    TOKEN_NOT_GENREATE: TOKEN
+  NOT_FOUND: 'No Admin account is found',
+  INVALID_ADMIN: 'The Admin is not valid',
+  VALIDATION_FAILED: 'Validation failed',
+  INVALID_EMAIL_PASSWORD: "Your email or password is not correct.",
+  INVALID_EMAIL: "Invalid Email.",
+  INVALID_PASSWORD: 'Password not match !',
+  BLOCKED_ACCOUNT: "Your account is blocked. Please contact admin.",
+  INVALID_MANAGER: "No MANAGER with given Id found.",
+  DUPLICATE_MANAGER: "MANAGER with given email already exists.",
+  MANAGER_SUBMIT_SUCCESS: "MANAGER added successfully",
+  MANAGER_DELETE_SUCCESS: "MANAGER deleted  successfully",
+  MANAGER_UPDATE_SUCCESS: "MANAGER updated successfully",
+  DUPLICATE_DATA: "Email which you are trying to submit for this manager is already taken",
+  TOKEN_NOT_GENREATE: TOKEN,
+  LOGGED_IN: "You are logged in successfully.",
+  LOGGED_OUT: "Logged Out successfully",
+  SYSTEM_FAILURE: SYSTEM_FAILURE,
+  SERVER_NOT_RESPOND: 'Server did not respond correctly',
 }
 
 // manager.js
 const MANAGER_CONSTANTS = {
   INACTIVE_ACCOUNT: INACTIVE_ACCOUNT,
-  INVALID_USER: INVALID_USER,
-  MOBILE_EMAIL_ALREADY_EXISTS: "Mobile and email are already registered",
+  INVALID_ID: "No manager registered with given Id",
+  INVALID_EMAIL: "The email provided is not registered. Please sign up to continue.",
+  USERNAME_ALREADY_EXISTS: "UserName already registered",
   EMAIL_ALREADY_EXISTS: "Email already registered",
   MOBILE_ALREADY_EXISTS: "Mobile number already registered",
-  USERNAME_ALREADY_EXISTS: "UserName already registered",
+  MOBILE_EMAIL_ALREADY_EXISTS: "Mobile and email are already registered",
   ALL_CHECKS_VALID: "All check are valid. Proceed for OTP",
+  VERIFICATION_SUCCESS: "Continue for OTP.",
   INVALID_OTP: "Invalid OTP passed",
   OTP_MISSING: "No OTP passed. OTP is required for registration.",
   OTP_MISSING_UPDATE: "No OTP passed. OTP is required for update.",
+  LOGGED_IN: "You are logged in successfully.",
   LOGGED_OUT: "Logged Out successfully",
-  VERIFICATION_SUCCESS: "Continue for OTP."
 };
 
 // users.js
 const USER_CONSTANTS = {
   INACTIVE_ACCOUNT: INACTIVE_ACCOUNT,
   INVALID_USER: INVALID_USER,
-  MOBILE_EMAIL_ALREADY_EXISTS: "Mobile and email are already registered",
+  USERNAME_ALREADY_EXISTS: "UserName already registered",
   EMAIL_ALREADY_EXISTS: "Email already registered",
   MOBILE_ALREADY_EXISTS: "Mobile number already registered",
-  USERNAME_ALREADY_EXISTS: "UserName already registered",
+  MOBILE_EMAIL_ALREADY_EXISTS: "Mobile and email are already registered",
   ALL_CHECKS_VALID: "All check are valid. Proceed for OTP",
+  VERIFICATION_SUCCESS: "Continue for OTP.",
   INVALID_OTP: "Invalid OTP passed",
   OTP_MISSING: "No OTP passed. OTP is required for registration.",
   OTP_MISSING_UPDATE: "No OTP passed. OTP is required for update.",
+  LOGGED_IN: "You are logged in successfully.",
   LOGGED_OUT: "Logged Out successfully",
-  VERIFICATION_SUCCESS: "Continue for OTP.",
+  DELETE_SUCCESS: "User account is deleted."
 };
 
 // auth.js
@@ -79,7 +85,8 @@ const AUTH_CONSTANTS = {
   INVALID_MOBILE: "No user found with given mobile number.",
   MOBILE_REQUIRED: '"mobile" is required',
   OTP_TOKEN_REQUIRED: '"otpToken" is required',
-  INVALID_EMAIL_MOBILE:  'The email/mobile you provided is not registered',
+  INVALID_EMAIL_MOBILE: 'The email/mobile you provided is not registered',
+  SESSION_EXPIRED: "Your session has been expired.",
   SYSTEM_FAILURE: SYSTEM_FAILURE,
 };
 
@@ -104,7 +111,7 @@ const BOOKING_CONSTANTS = {
   INPROGRESS_SUCCESS: "Provider has started the service",
   PROVIDER_INPROGRESS_FAILURE: "Your task is already in progress.",
   NOT_STARTED: "Provider has not yet started his journey",
-  CANT_BOOK:  "You can't accept multiple requests. You can accept another request once you have started the service of current request.",
+  CANT_BOOK: "You can't accept multiple requests. You can accept another request once you have started the service of current request.",
   CANCEL_SUBMIT_SUCCESS: "Booking Cancelled Successfully.",
   UPLOADED_SUCCESSFULLY: "Image is uploaded successfully.",
   CANCEL_BOOKING: "Are you sure you want to cancel?",
@@ -135,11 +142,11 @@ const OTP_CONSTANTS = {
 
 
 module.exports = {
-  AUTH_CONSTANTS,
   ADMIN_CONSTANTS,
+  MANAGER_CONSTANTS,
   USER_CONSTANTS,
+  AUTH_CONSTANTS,
   BOOKING_CONSTANTS,
   OTP_CONSTANTS,
-  SYSTEM_FAILURE,
-  MANAGER_CONSTANTS
+  SYSTEM_FAILURE
 }
