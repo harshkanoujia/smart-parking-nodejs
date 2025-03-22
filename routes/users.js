@@ -100,7 +100,7 @@ router.put('/:id', async (req, res) => {
         username: req.body.username,
         email: req.body.email,
         password: hashedPassword,
-        phoneNo: req.body.phoneNo
+        mobile: req.body.mobile
     }
     }, { new: true })
     if (!savedUser) return res.status(400).json({msg: "ID not found"})

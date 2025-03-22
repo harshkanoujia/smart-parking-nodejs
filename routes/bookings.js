@@ -1,11 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const router = express.Router();
+
 const { Booking } = require('../model/Booking');
 const { Vehicle } = require('../model/Vehicle');
 const { ParkingSlot } = require('../model/ParkingSlot');
 const { ParkingSpot } = require('../model/ParkingSpot');
-const { SYSTEM_FAILURE } = require('../config/constant');
-const router = express.Router();
 
 
 // User can book a slot
@@ -69,7 +69,7 @@ router.post('/', async (req, res) => {
     )
     return res.status(200).json({msg: 'Succesfully Booking', bookingData : booking })
 
-})
+});
 
 // User can complete its booking
 router.post('/complete', async (req, res) => {                                                  
@@ -118,7 +118,7 @@ router.post('/complete', async (req, res) => {
     )
     
     res.status(200).json({ 'Booking Complete': updateBooking })    
-})
+});
 
 // All bookings
 router.get('/', async (req, res) => {                                                           
@@ -149,7 +149,7 @@ router.get('/', async (req, res) => {
     if (booking.length === 0)   return res.status(400).json({ msg: 'No Booking Found !'})
     
     res.status(200).json({"Bookings": booking })
-})
+});
 
 // check user booking details with userId
 router.get('/user', async (req, res) => {
@@ -239,7 +239,7 @@ router.get('/user', async (req, res) => {
     if (! userBooking  || userBooking.length === 0 )  return res.status(400).json({ statuscode: 400, message: "Faliure", data: { message: "UserId Not found"}})
 
     return res.status(200).json({ statuscode: 200, message: "Success", data: { "The Active booking is ": userBooking }})
-})
+});
 
 // check user booking details with userId with more details 
 router.get('/user/history', async (req, res) => {
@@ -301,7 +301,7 @@ router.get('/user/history', async (req, res) => {
                     $first:{
                         username: "$User.username",
                         email: "$User.email",
-                        phoneNo: "$User.phoneNo",
+                        mobile: "$User.mobile",
                         role: "$User.role",
                         creationDate: "$User.creationDateString"          // Formatted user creation date
                     }
@@ -336,7 +336,7 @@ router.get('/user/history', async (req, res) => {
     if (! userBooking )  return res.status(400).json({ statuscode: 400, message: "Faliure", data: { message: "UserId Not found"}})
 
     return res.status(200).json({ statuscode: 200, message: "Success", data: { "Your Booking History is ": userBooking } })
-})
+});
 
 // Booking find by Id
 router.get('/:id', async ( req , res) => {   
@@ -371,6 +371,6 @@ router.get('/:id', async ( req , res) => {
     if (!booking) return res.status(400).json({msg: "ID not found"})
     
     res.status(200).json({Booking: booking }) 
-})
+});
 
 module.exports = router;

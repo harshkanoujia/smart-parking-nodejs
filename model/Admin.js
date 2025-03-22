@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
 
-// super - Admin schema
+// super - admin schema
 const adminSchema = new mongoose.Schema({
     fullName: { type: String, trim: true },
     email: { type: String, trim: true },
-    phoneNo: { type: String, trim: true },
+    mobile: { type: String, trim: true, default: "" },
     password: { type: String, trim: true },
     status: { type: String, enum: ["active", "blocked", 'inactive', 'suspended'], default: 'active' },
     
@@ -27,7 +27,7 @@ const adminSchema = new mongoose.Schema({
             return new Date();
         }
     },
-    updatedDate: {
+    lastUpdatedDate: {
         type: Number,
         default: () => {
             return Math.round(new Date() / 1000);
@@ -39,8 +39,9 @@ const adminSchema = new mongoose.Schema({
 adminSchema.methods.generateAuthToken = function () {
     const token = jwt.sign(
         {
-            adminId: this._id,
+            userId: this._id,
             email: this.email,
+            mobile: this.mobile,
             role: "admin"
         },
         config.get("jwtPrivateKey"),
@@ -50,17 +51,17 @@ adminSchema.methods.generateAuthToken = function () {
 }
 
 // composite index 
-adminSchema.index({ phoneNo: 1, email: 1 }, { unique: true });
+adminSchema.index({ mobile: 1, email: 1 }, { unique: true });
 
 const Admin = mongoose.model('Admin', adminSchema);
 
 
-// Admin login
+// admin login
 function validate(req) {
     const Schema = Joi.object({
-        email: Joi.string().email().max(150).trim().required(),
+        email: Joi.string().email().min(5).max(150).required(),
         password: Joi.string().min(6).max(250).required(),
-    })
+    });
     return Schema.validate(req);
 }
 

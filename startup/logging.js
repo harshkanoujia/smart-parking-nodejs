@@ -11,14 +11,13 @@ module.exports = function() {
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
         winston.format.prettyPrint(),
         winston.format.printf(({ timestamp, level, message, stack }) => {
-            // return `[${timestamp}] [${level.toUpperCase()}] [${message}]   ${stack ? stack.replace(/\n/g, ' | ') : "" }`;    
             return JSON.stringify({ timestamp, level: level.toUpperCase(), message, stack: stack ? stack: "" }).replace(/,/g, ', ');    // README
         })
     );
 
     // unhandled exception log 
     winston.exceptions.handle(
-        new winston.transports.Console(),
+        new winston.transports.Console({ colorize: true, prettyPrint: true }),
         new winston.transports.File({ filename: 'logs/uncaughtExceptions.log' })     // async error 
     );
     
@@ -27,5 +26,8 @@ module.exports = function() {
     });
 
     // Unhandled Rejections
-    winston.add( new winston.transports.File({ filename: 'logs/logfile.log', format: errorFormat }) );      // sync error handle and also promise rejection
+    winston.add( 
+        new winston.transports.Console({ colorize: true, prettyPrint: true }),
+        new winston.transports.File({ filename: 'logs/logfile.log', format: errorFormat }) 
+    );      // sync error handle and also promise rejection
 }

@@ -6,15 +6,16 @@ const mongoose = require('mongoose');
 
 // User Schema
 const userSchema = new mongoose.Schema({
-    fullName: { type: String, trim: true, required: true },
+    fullName: { type: String, trim: true },
     email: { type: String, trim: true },
-    phoneNo: { type: String, trim: true, unique: true, required: true },
+    mobile: { type: String, trim: true, unique: true },
     password: { type: String, trim: true },
-    gender: { type: String, enum: ['male', 'female', 'other'], trim: true, required: true },
+    gender: { type: String, enum: ['male', 'female', 'other'], trim: true },
     profilePic: { type: String, default: "" },
 
     isOnline: { type: Boolean, default: false },
     isEmailVerified: { type: Boolean, default: false },
+    isMobileVerified: { type: Boolean, default: false },
 
     totalBookings: { type: Number, default: 0 },
     status: { type: String, enum: ['active', 'inactive', 'suspended', 'blocked', 'deleted'], default: 'active' },
@@ -41,8 +42,9 @@ const userSchema = new mongoose.Schema({
         }
     },
 
-    deleteDate: { type: Number },
+    deleteDate: { type: Number, default: -1 },
     deletedBy: { type: mongoose.Schema.Types.ObjectId, default: null },
+    deletedByRole: { type: String, default: "" },
     isDeleted: { type: Boolean, default: false }
 })
 
@@ -52,57 +54,56 @@ userSchema.methods.generateAuthToken = function () {
         {
             userId: this._id,
             email: this.email,
-            phoneNo: this.phoneNo,
+            mobile: this.mobile,
             role: 'user'
         },
         config.get('jwtPrivateKey'),
         { expiresIn: '30d' }
-    )
+    );
     return token;
 }
 
-userSchema.index({ email: 1, phoneNo: 1 }, { unique: true })
+userSchema.index({ email: 1, mobile: 1 }, { unique: true });
 
 const User = mongoose.model('User', userSchema);
 
 
 // user register
-function validateUserRegister(user) {
+function validateUserRegister(post) {
     const Schema = Joi.object({
-        fullName: Joi.string().min(3).max(20),
-        email: Joi.string().email().max(150).trim(),
-        phoneNo: Joi.string().min(10).max(12).required(),
+        fullName: Joi.string().min(3).max(20).required(),
+        email: Joi.string().email().max(150).optional(),
+        mobile: Joi.string().min(10).max(15).required(),
         password: Joi.string().min(6).max(250).required(),
         gender: Joi.string().valid('male', 'female', 'other').required(),
-        profilePic: Joi.string().allow("").allow(null),
-        deviceToken: Joi.string().min(1).max(200).allow(""),
-    })
-    return Schema.validate(user)
+        profilePic: Joi.string().max(255).allow("").optional(),
+        deviceToken: Joi.string().max(255).allow("").optional()
+    });
+    return Schema.validate(post);
 }
 
 // user login
-function validateUserLogin(user) {
+function validateUserLogin(post) {
     const Schema = Joi.object({
-        email: Joi.string().email().max(150).trim(),
-        phoneNo: Joi.string().min(10).max(12),
+        email: Joi.string().email().max(150),
+        mobile: Joi.string().min(10).max(12),
         password: Joi.string().min(6).max(250).required(),
-    })
-    return Schema.validate(user)
+    }).or('email', 'mobile');
+    return Schema.validate(post);
 }
 
 // user update
-function validateUserUpdate(user) {
+function validateUserUpdate(put) {
     const Schema = Joi.object({
-        fullName: Joi.string().min(3).max(20),
-        email: Joi.string().email().max(150).trim().allow(null).allow(""),
-        phoneNo: Joi.string().min(10).max(12).allow(null).allow(""),
+        fullName: Joi.string().min(3).max(20).optional(),
+        email: Joi.string().email().min(5).max(150).optional(),
+        mobile: Joi.string().min(10).max(12).optional(),
         // password: Joi.string().min(3).max(250).allow(""),    // forgot password
-        deviceToken: Joi.string().min(1).max(250),
-        profilePic: Joi.string().allow(""),
-        status: Joi.string().valid("active", "inactive", "blocked", "suspended"),
-        gender: Joi.string().valid('male', 'female', 'other')
-    })
-    return Schema.validate(user)
+        gender: Joi.string().valid('male', 'female', 'other').min(4).optional(),
+        profilePic: Joi.string().min(1).max(250).optional(),
+        deviceToken: Joi.string().min(1).max(250).optional()
+    });
+    return Schema.validate(put);
 }
 
 module.exports = {

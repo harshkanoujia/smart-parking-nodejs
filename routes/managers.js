@@ -1,104 +1,210 @@
-const config = require('config')
+const _ = require('lodash');
+const config = require('config');
+const bcrypt = require('bcryptjs');
 const express = require('express');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const Jwt = require('jsonwebtoken');
-const { Manager } = require('../model/Manager');
-const { identityManager } = require('../middleware/auth');
 const router = express.Router();
 
+const { identityManager } = require('../middleware/auth');
+const { MANAGER_CONSTANTS } = require('../config/constant');
+const { Manager, validateManagerUpdate, validateManagerRegister } = require('../model/Manager');
 
-// Manager login 
-router.post('/login', async (req, res) => {                                        
 
-    const {error} = Validation(req.body)
-    if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
-    
-    const manager =  await Manager.findOne({ email: req.body.email.toLowerCase() })                                                                         //Im using toLowercase() here because it can not validate it if i give any capital letter
-    if(! manager) return res.status(400).json({err: 'Email not valid !'})
-    
-    const verifyPassword = await bcrypt.compare( req.body.password.trim() , manager.password )                                                           //Im using trim here because it can not validate password if give space in token
-    if(!verifyPassword) return res.status(400).json({ err: 'Password not match !'})
-    
-    const token = Jwt.sign({ email: req.body.email.trim().toLowerCase() , role: manager.role, _id: manager._id }, config.get('jwtPrivateKey') , { expiresIn: '70d'});                      //im using trim and lowercase here because it can store directly body information in token
-    if(!token) return res.status(400).json({ err: 'There might be a problem while generating Token. !'})
-    
-    manager.token = token
-    await manager.save() 
-    
-    res.status(200).json({msg: 'Manager verified Successfully', Token: token})
-})
 
-// All Manager accounts
-router.get('/view/profile', async (req, res) => {                                               
+// manager profile
+router.get('/profile', identityManager(['manager', 'admin']), async (req, res) => {
 
-    const manager = await Manager.aggregate([ { $match: {}}]);
-    if(manager.length === 0) return res.status(400).json({ msg: 'No Manager Found !'})
-        
-    res.status(200).json({ "Managers": manager })
-})
+    let criteria = {};
 
-// Manager can logout
-router.post('/logout', async (req, res) => {                           
-
-    if (req.user.email !== req.body.email.trim().toLowerCase() ) {
-        return res.status(400).json({ err: "Email in token doesn't match provided email" });
+    if (req.jwtData.role === "manager") {
+        criteria._id = new mongoose.Types.ObjectId(req.reqUserId);
+    } else if (req.query.id && req.jwtData.role === "admin") {
+        criteria._id = new mongoose.Types.ObjectId(req.query.id);   // for admin check single account
+    } else {
+        criteria = {};                                              // admin check all managers
     }
 
-    const manager = await Manager.findOne({ email: req.body.email.trim().toLowerCase() })                                                                  //trim does not effect on it in my thought but we add because of any there might be case of it giving us error
-    if(!manager) return res.status(400).json({err: "Invalid email"})
+    criteria.status = req.query.status ? req.query.status : "active";
 
-    manager.token = ""
-    await manager.save()
-    
-    res.status(200).json({msg: "Successfully Logout", "Manager": manager})
-}) 
+    const manager = await Manager.aggregate([
+        {
+            $facet: {
+                value: [
+                    { $match: criteria },
+                    { $project: { password: 0 } }
+                ],
+                totalManagers: [
+                    { $match: criteria },
+                    { $count: "count" }
+                ]
+            }
+        }
+    ]);
+    console.log(" \nMANAGER ====>> ", manager[0])
 
-// manager can update
-router.put('/', identityManager(['admin', 'manager' ]), async (req, res) => {                                       
-    const {error} = validateManagerCreate(req.body)
-    if(error) return res.status(400).json({msg: 'Validation failed', err: error.details[0].message})
-    
-    const phoneNo = req.body.phoneNo.trim(); 
-    
-    let manager = await Manager.findOne({ phoneNo: phoneNo });
-    if (manager) return res.status(400).send({ statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.MOBILE_ALREADY_EXISTS });
-    
-    const encryptPassword = await bcrypt.hash(req.body.password, config.get('bcryptSalt'))
+    const value = manager.length === 0 ? [] : manager[0].value
+    const totalManagers = manager[0].totalManagers.length === 0 ? 0 : manager[0].totalManagers[0].count;
+
+    return res.status(200)
+        .json({
+            apiId: req.apiId,
+            statusCode: 200,
+            message: "Success",
+            data: { totalManagers, manager: value }
+        });
+});
+
+// manager create                                                       
+router.post('/', async (req, res) => {
+
+    // validate req.body
+    const { error } = validateManagerRegister(req.body);
+    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', err: error.details[0].message });
+
+    let criteria = {};
+    let email = "";
+
+    if (req.body.email) {
+        email = req.body.email.trim().toLowerCase();
+        criteria.email = email;
+    }
+
+    const mobile = req.body.mobile.trim();
+    const password = req.body.password.trim();
+
+    criteria.mobile = mobile;
+
+    // find if the mobile already exist or not 
+    let manager = await Manager.findOne(criteria);
+    if (manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.MOBILE_EMAIL_ALREADY_EXISTS } });
+
+    // encrypt password
+    const encryptPassword = await bcrypt.hash(password, config.get('bcryptSalt'));
 
     manager = new Manager(
-        _.pick( req.body, [
-            "fullName", 
+        _.pick(req.body, [
+            "fullName",
             "gender",
             "profilePic"
         ])
-    )
+    );
 
-    if (req.body.email) {
-        manager.email = req.body.email.trim().toLowerCase();
-    }
-    manager.phoneNo = phoneNo; 
+    manager.email = email;
+    manager.mobile = mobile;
     manager.password = encryptPassword;
-    manager.status = 'active';
+
+    // genreate token
+    const token = manager.generateAuthToken();
+    manager.accessToken = token;
+
+    manager.deviceToken = req.body.deviceToken || "";
+    manager.status = 'pending';
 
     await manager.save();
-    
-    res.send({ statusCode: 200, message: "Success", data: ADMIN_CONSTANTS.MANAGER_SUBMIT_SUCCESS });
-})
 
-// Manager delete own account
-router.delete('/:id', async (req, res) => {           
+    const response = _.pick(manager, [
+        "_id",
+        "fullName",
+        "email",
+        "mobile",
+        "gender",
+        "profilePic",
+        "isOnline",
+        "isEmailVerified",
+        "isMobileVerified",
+        "status",
+        "deviceToken",
+        "insertDate",
+        "creationDate",
+        "lastUpdatedDate",
+    ]);
 
-    if(! mongoose.Types.ObjectId.isValid(req.params.id)){
-        return res.status(400).json('Invalid Id')
+    return res.header("Authorization", token)
+        .status(200)
+        .json({
+            apiId: req.apiId,
+            statusCode: 200,
+            message: "Success",
+            data: { msg: MANAGER_CONSTANTS.CREATED_SUCCESS, manager: response }
+        });
+});
+
+// manager update
+router.put('/:id', identityManager(['admin', 'manager']), async (req, res) => {
+    // req resource
+    const { error } = validateManagerUpdate(req.body)
+    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+
+    // find exist or not
+    let manager = await Manager.findOne({_id: req.params.id});
+    if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+
+    const { fullName, email, mobile, gender, profilePic, deviceToken } = req.body;
+
+    manager.fullName = fullName?.trim() || manager.fullName;
+    manager.gender = gender?.trim() || manager.gender;
+    manager.profilePic = profilePic?.trim() || manager.profilePic;
+
+    // pending case if manager want to update email & mobile and we have to check if it already in used
+    manager.email = email?.trim().toLowerCase() || manager.email;
+    manager.mobile = mobile?.trim() || manager.mobile;
+
+    // // genreate token    // it can be updated the token if there is not present email and mobile
+    // const token = manager.generateAuthToken();
+    // manager.accessToken = token;
+
+    manager.deviceToken = deviceToken ? deviceToken : manager.deviceToken;
+
+    manager.lastUpdatedDate = Math.floor(Date.now() / 1000);
+
+    await manager.save();
+
+    const response = _.pick(manager, [
+        "_id",
+        "fullName",
+        "email",
+        "mobile",
+        "gender",
+        "profilePic",
+        "isOnline",
+        "isEmailVerified",
+        "isMobileVerified",
+        "status",
+        "deviceToken",
+        "insertDate",
+        "creationDate",
+        "lastUpdatedDate",
+    ]);
+
+    return res.status(200)
+        .json({
+            apiId: req.apiId,
+            statusCode: 200,
+            message: "Success",
+            data: { msg: MANAGER_CONSTANTS.UPDATE_SUCCESS, manager: response }
+        });
+});
+
+// manager delete
+router.delete('/:id', identityManager(['admin', 'manager']), async (req, res) => {
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
     }
 
-    const manager = await Manager.findByIdAndDelete(req.params.id)
-    if(!manager) return res.status(400).json({msg: "ID not found"})
+    const manager = await Manager.findOne({ _id: req.params.id });
+    if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
 
-    res.status(200).json({ msg: 'Manager Deleted Successfully', Manager : manager})
+    manager.isDeleted = true;
+    manager.status = "deleted";
+    manager.deletedBy = req.reqUserId;
+    manager.deletedByRole = req.jwtData.role;
+    manager.deleteDate = Math.floor(Date.now() / 1000);
 
-})
+    manager.save();
+
+    return res.status(200).send({ apiId: req.apiId, statusCode: 200, message: "Success", data: MANAGER_CONSTANTS.DELETE_SUCCESS });
+});
 
 
 module.exports = router;

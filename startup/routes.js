@@ -5,10 +5,11 @@ const reqLogger = require('../startup/logger');
 // Routes
 const user = require('../routes/users');
 const admin = require('../routes/admins');
+const adminAuth = require('../routes/adminAuth');
 const vehicle = require('../routes/vehicles');
 const booking = require('../routes/bookings');
 const manager  = require('../routes/managers');
-const adminAuth = require('../routes/adminAuth');
+const managerAuth = require('../routes/managerAuth');
 const parkingArea = require('../routes/parkingAreas');
 const parkingSlot = require('../routes/parkingSlots');
 const parkingSpot = require('../routes/parkingSpots');
@@ -23,10 +24,11 @@ module.exports = function (app) {
 
     app.use('/api/users', user);
     app.use('/api/admins', admin);
+    app.use('/api/auth/admin', adminAuth);
     app.use('/api/vehicles', vehicle);
     app.use('/api/bookings', booking);
     app.use('/api/managers', manager);
-    app.use('/api/auth/admin', adminAuth);
+    app.use('/api/auth/manager', managerAuth);
     app.use('/api/parking-areas', parkingArea);
     app.use('/api/parking-slots', parkingSlot);
     app.use('/api/parking-spots', parkingSpot);

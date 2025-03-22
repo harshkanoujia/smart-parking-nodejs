@@ -8,7 +8,7 @@ const { Manager } = require('../model/Manager');
 const { AUTH_CONSTANTS } = require('../config/constant');
 
 
-// Token verify and role check
+// token verify and role check
 function identityManager(allowedRolesArray) {
     return async ( req, res, next ) => {
 
@@ -54,7 +54,7 @@ function identityManager(allowedRolesArray) {
 
         req.jwtData = decode;
 
-        console.log("verified token ==> ", decode );
+        console.log("\nExtracted token ==> ", decode );
 
         // authorization check role is allowed 
         if ( !allowedRolesArray.includes(decode.role) ) {
@@ -69,30 +69,30 @@ function identityManager(allowedRolesArray) {
         // on role basis check it exist or not 
         switch (decode.role) {
             case "admin":
-                let admin = await Admin.findOne({ _id: new mongoose.Types.ObjectId(decode.adminId) });
+                let admin = await Admin.findOne({ _id: decode.userId });
                 if (!admin || (admin && admin.accessToken !== token))
                 return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
                 req.userData = admin;
-                req.reqUserId = decode._id;
+                req.reqUserId = decode.userId;
                 break;
 
             case "manager":
-                let manager = await Manager.findOne({ _id: new mongoose.Types.ObjectId(decode.managerId) });
+                let manager = await Manager.findOne({ _id: decode.userId });
                 if (!manager || (manager && manager.accessToken !== token))
                     return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
                 req.userData = manager;
-                req.reqUserId = decode._id;
+                req.reqUserId = decode.userId;
                 break;
 
             case "user":
-                let user = await User.findOne({ _id: new mongoose.Types.ObjectId(decode.userId) });
+                let user = await User.findOne({ _id: decode.userId });
                 if (!user || (user && user.accessToken !== token))
                     return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
                 req.userData = user;
-                req.reqUserId = decode._id;
+                req.reqUserId = decode.userId;
                 break;
                 
             default:
