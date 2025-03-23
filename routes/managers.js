@@ -18,8 +18,13 @@ router.get('/profile', identityManager(['manager', 'admin']), async (req, res) =
 
     if (req.jwtData.role === "manager") {
         criteria._id = new mongoose.Types.ObjectId(req.reqUserId);
+    
     } else if (req.query.id && req.jwtData.role === "admin") {
+        if (!mongoose.Types.ObjectId.isValid(req.query.id)) 
+            return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
+        
         criteria._id = new mongoose.Types.ObjectId(req.query.id);   // for admin check single account
+    
     } else {
         criteria = {};                                              // admin check all managers
     }
@@ -40,9 +45,8 @@ router.get('/profile', identityManager(['manager', 'admin']), async (req, res) =
             }
         }
     ]);
-    console.log(" \nMANAGER ====>> ", manager[0])
 
-    const value = manager.length === 0 ? [] : manager[0].value
+    const value = manager.length === 0 ? [] : manager[0].value;
     const totalManagers = manager[0].totalManagers.length === 0 ? 0 : manager[0].totalManagers[0].count;
 
     return res.status(200)
@@ -130,13 +134,23 @@ router.post('/', async (req, res) => {
 });
 
 // manager update
-router.put('/:id', identityManager(['admin', 'manager']), async (req, res) => {
+router.put('/:id?', identityManager(['admin', 'manager']), async (req, res) => {
     // req resource
     const { error } = validateManagerUpdate(req.body)
     if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
 
+    const criteria = {};
+    if (req.jwtData.role === "manager") {
+        criteria._id = req.reqUserId;
+    } else {
+        if (req.params.id && !mongoose.Types.ObjectId.isValid(req.params.id))
+            return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
+        
+        criteria._id = req.params.id;
+    }
+
     // find exist or not
-    let manager = await Manager.findOne({_id: req.params.id});
+    let manager = await Manager.findOne(criteria);
     if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
 
     const { fullName, email, mobile, gender, profilePic, deviceToken } = req.body;

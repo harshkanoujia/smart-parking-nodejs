@@ -53,6 +53,7 @@ const MANAGER_CONSTANTS = {
 const USER_CONSTANTS = {
   INACTIVE_ACCOUNT: INACTIVE_ACCOUNT,
   INVALID_USER: INVALID_USER,
+  INVALID_CREDENTIALS: 'Invalid credentials. check again !',
   USERNAME_ALREADY_EXISTS: "UserName already registered",
   EMAIL_ALREADY_EXISTS: "Email already registered",
   MOBILE_ALREADY_EXISTS: "Mobile number already registered",
@@ -63,9 +64,11 @@ const USER_CONSTANTS = {
   INVALID_OTP: "Invalid OTP passed",
   OTP_MISSING: "No OTP passed. OTP is required for registration.",
   OTP_MISSING_UPDATE: "No OTP passed. OTP is required for update.",
+  CREATED_SUCCESS: "Account created successfully.",
+  UPDATE_SUCCESS: "Account updated successfully",
   LOGGED_IN: "You are logged in successfully.",
   LOGGED_OUT: "Logged Out successfully",
-  DELETE_SUCCESS: "User account is deleted."
+  DELETE_SUCCESS: "Account deleted Successfully."
 };
 
 // auth.js
