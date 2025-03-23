@@ -3,8 +3,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 
-const { identityManager } = require('../middleware/auth');
 const { USER_CONSTANTS } = require('../config/constant');
+const { identityManager } = require('../middleware/auth');
 const { User, validateUserLogin } = require('../model/User');
 
 
