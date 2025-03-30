@@ -1,6 +1,6 @@
 const config = require('config');
 const mongoose = require('mongoose');
-const ApiLog = require('../model/ApiLog');
+const ApiLog = require('../model/apiLog');
 
 
 // API req and res log maintain
@@ -20,13 +20,13 @@ module.exports = function (req, res, next) {
 
     // cleanup() remove event listener 
     const cleanup = () => {
-        res.removeListener('finish', loggerFunction)
-        res.removeListener('close', loggerFunction)
-        res.removeListener('error', loggerFunction)
+        res.removeListener('finish', loggerFunction);
+        res.removeListener('close', loggerFunction);
+        res.removeListener('error', loggerFunction);
     }
 
     // manually stored base URL because it changes when error occur
-    let baseUrl = req.baseUrl || req.originalUrl.split("?")[0].split("/").slice(0, 3).join("/") ;       // README
+    let baseUrl = req.baseUrl || req.originalUrl.split("?")[0].split("/").slice(0, 3).join("/");       // README
 
     // api req save in db when res complete 
     const loggerFunction = async () => {
@@ -63,7 +63,7 @@ module.exports = function (req, res, next) {
                 )
             }
         } catch (error) {
-            console.log('Error in logger ==> ', error )
+            console.log('Error in logger ==> ', error );
         }
     }
 
