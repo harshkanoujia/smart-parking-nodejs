@@ -8,7 +8,9 @@ const apiLogSchema = new mongoose.Schema({
     completeUrl: { type: String },
     baseUrl: { type: String },
     params: { type: Object },
-    query: { type: Object },
+    email: { type: String },
+    role: { type: String },
+    query: { type: Object }, 
     body: { type: Object },
     startTime: {
         type: Number,
