@@ -74,10 +74,11 @@ router.post('/logout', identityManager(["manager"]), async (req, res) => {
     const id = req.reqUserId;
     
     const manager = await Manager.findOne({ _id: id });
-    if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+    if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: MANAGER_CONSTANTS.INVALID_ID } });
 
     manager.isOnline = false;
     manager.accessToken = "";
+    manager.deviceToken = "";
     manager.status = "inactive";
 
     await manager.save();

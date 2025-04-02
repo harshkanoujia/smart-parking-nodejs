@@ -54,7 +54,7 @@ function identityManager(allowedRolesArray) {
 
         req.jwtData = decode;
 
-        console.log("\nExtracted token ==> ", decode );
+        console.log("\nExtracted token ==> ", req.jwtData );
 
         // authorization check role is allowed 
         if ( !allowedRolesArray.includes(decode.role) ) {
@@ -69,7 +69,7 @@ function identityManager(allowedRolesArray) {
         // on role basis check it exist or not 
         switch (decode.role) {
             case "admin":
-                let admin = await Admin.findOne({ _id: decode.userId });
+                let admin = await Admin.findById(decode.userId);
                 if (!admin || (admin && admin.accessToken !== token))
                 return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
@@ -78,7 +78,7 @@ function identityManager(allowedRolesArray) {
                 break;
 
             case "manager":
-                let manager = await Manager.findOne({ _id: decode.userId });
+                let manager = await Manager.findById(decode.userId);
                 if (!manager || (manager && manager.accessToken !== token))
                     return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 
@@ -87,7 +87,7 @@ function identityManager(allowedRolesArray) {
                 break;
 
             case "user":
-                let user = await User.findOne({ _id: decode.userId });
+                let user = await User.findById(decode.userId);
                 if (!user || (user && user.accessToken !== token))
                     return res.status(401).json({ apiId: req.apiId, statusCode: 401, message: "Failure", data: AUTH_CONSTANTS.ACCESS_DENIED });
                 

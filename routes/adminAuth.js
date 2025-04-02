@@ -13,18 +13,18 @@ router.post('/login', async (req, res) => {
 
     // validate req.body
     const { error } = validate(req.body);
-    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', err: error.details[0].message });
+    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
 
     const email = req.body.email.toLowerCase().trim();
     const password = req.body.password.trim();
 
     // find if the email already exist or not 
     const admin = await Admin.findOne({ email: email });
-    if (!admin) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: ADMIN_CONSTANTS.INVALID_EMAIL });
+    if (!admin) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: ADMIN_CONSTANTS.INVALID_EMAIL } });
 
     // authentication 
     const verifyPassword = await bcrypt.compare(password, admin.password);
-    if (!verifyPassword) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: ADMIN_CONSTANTS.INVALID_PASSWORD });
+    if (!verifyPassword) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: ADMIN_CONSTANTS.INVALID_PASSWORD } });
 
     // genreate token
     const token = admin.generateAuthToken();
@@ -51,9 +51,10 @@ router.post('/logout', identityManager(['admin']), async (req, res) => {
     const id = req.reqUserId;
 
     const admin = await Admin.findOne({ _id: id });
-    if (!admin) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: ADMIN_CONSTANTS.INVALID_ADMIN });
+    if (!admin) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: ADMIN_CONSTANTS.INVALID_ADMIN } });
 
     admin.accessToken = "";
+    admin.deviceToken = "";
     admin.status = "inactive";
 
     await admin.save();

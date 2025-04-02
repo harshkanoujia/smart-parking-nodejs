@@ -72,14 +72,13 @@ router.post('/login', async (req, res) => {
 
 // user logout
 router.post('/logout', identityManager(["user"]), async (req, res) => {
-
-    const id = req.reqUserId;
     
-    const user = await user.findOne({ _id: id });
-    if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: USER_CONSTANTS.INVALID_USER });
+    const user = await User.findById(req.reqUserId);
+    if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: USER_CONSTANTS.INVALID_USER } });
 
     user.isOnline = false;
     user.accessToken = "";
+    user.deviceToken = "";
     user.status = "inactive";
 
     await user.save();

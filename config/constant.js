@@ -18,6 +18,7 @@ const ADMIN_CONSTANTS = {
   DUPLICATE_MANAGER: "MANAGER with given email already exists.",
   MANAGER_DELETE_SUCCESS: "Manager account deleted  successfully",
   MANAGER_STATUS_UPDATE: "Manager account Status updated successfully",
+  USER_STATUS_UPDATE: "User account Status updated successfully",
   DUPLICATE_DATA: "Email which you are trying to submit for this manager is already taken.",
   TOKEN_NOT_GENREATE: TOKEN,
   LOGGED_IN: "You are logged in successfully.",
