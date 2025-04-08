@@ -27,7 +27,7 @@ require('./startup/prod')(app);         // production level
 require('./startup/logger');            // apiReq save 
 
 // require('./services/stripeFunctions')
-Seed();
+Seed(); 
 
 
 //Start Server
