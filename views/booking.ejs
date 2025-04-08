@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Book Parking Spot</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #2c3e50;
+    }
+
+    input,
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      color: #333;
+    }
+
+    #parkingAreaId {
+      width: 96%;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    button {
+      background: #2ecc71;
+      color: white;
+      font-size: 16px;
+      border: none;
+      margin-top: 25px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #27ae60;
+    }
+
+    #card-element {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 15px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 20px;
+      margin-right: 23px;
+    }
+
+    .row input {
+      flex: 1;
+    }
+
+    .info-box {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      background: #f9f9f9;
+      padding: 15px 20px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .info-box div {
+      flex: 1;
+      text-align: center;
+    }
+
+    .info-box label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .info-box input {
+      font-size: 16px;
+      font-weight: bold;
+      background: #fff;
+      border: none;
+      text-align: center;
+      margin-top: 8px;
+      color: #2c3e50;
+    }
+
+    .alert {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Book Your Parking Spot Now</h2>
+    <form id="bookingForm">
+      <!-- Parking Area ID -->
+      <label for="parkingAreaId">Parking Area ID</label>
+      <input type="text" name="parkingAreaId" id="parkingAreaId" required />
+
+      <!-- Duration -->
+      <div class="row">
+        <div>
+          <label for="days">Days</label>
+          <input type="number" name="days" placeholder="e.g. 2" />
+        </div>
+        <div>
+          <label for="hours">Hours</label>
+          <input type="number" name="hours" placeholder="e.g. 5" />
+        </div>
+      </div>
+
+      <!-- Estimated Cost Display -->
+      <div class="info-box">
+        <div>
+          <label>Amount Per Hour (₹)</label>
+          <input type="text" id="amountPerHour" disabled placeholder="—" />
+        </div>
+        <div>
+          <label>Total Amount (₹)</label>
+          <input type="text" id="amountDisplay" disabled placeholder="—" />
+        </div>
+      </div>
+
+      <!-- Card Info -->
+      <label>Card Information</label>
+      <div id="card-element"></div>
+
+      <button type="submit">Book & Pay</button>
+      <p class="alert" id="errorMsg"></p>
+    </form>
+  </div>
+
+  <script>
+    const parkingAreaIdInput = document.querySelector('input[name="parkingAreaId"]');
+    const daysInput = document.querySelector('input[name="days"]');
+    const hoursInput = document.querySelector('input[name="hours"]');
+    const amountDisplay = document.getElementById('amountDisplay');
+    const amountPerHour = document.getElementById('amountPerHour');
+
+    const token = localStorage.getItem('authToken');
+
+    function debounce(func, delay) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    async function calculateAmount() {
+      const parkingAreaId = parkingAreaIdInput.value;
+      const days = daysInput.value ? parseInt(daysInput.value, 10) : 0;
+      const hours = hoursInput.value ? parseInt(hoursInput.value, 10) : 0;
+
+      if (!parkingAreaId || (days === 0 && hours === 0)) {
+        amountDisplay.value = '';
+        amountPerHour.value = '';
+        return;
+      }
+
+      const queryParams = new URLSearchParams({ parkingAreaId, days, hours });
+
+      try {
+        const res = await fetch(`/api/payments/estimate-amount?${queryParams.toString()}`, {
+          method: 'GET',
+          headers: { 'Authorization': token }
+        });
+
+        const result = await res.json();
+        if (res.status === 200 && result.data.totalAmount) {
+          amountDisplay.value = `₹${parseFloat(result.data.totalAmount).toFixed(2)}`;
+          amountPerHour.value = `₹${result.data.perhourPrice}`;
+        } else {
+          amountDisplay.value = '';
+          amountPerHour.value = '';
+        }
+      } catch (err) {
+        console.error('Error estimating amount:', err);
+        amountDisplay.value = '';
+        amountPerHour.value = '';
+      }
+    }
+
+    const debouncedCalculateAmount = debounce(calculateAmount, 500);
+
+    daysInput.addEventListener('input', debouncedCalculateAmount);
+    hoursInput.addEventListener('input', debouncedCalculateAmount);
+    parkingAreaIdInput.addEventListener('input', debouncedCalculateAmount);
+
+    // Stripe and booking logic
+    const stripe = Stripe('<%= stripePublicKey %>');
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    cardElement.mount('#card-element');
+
+    const form = document.getElementById('bookingForm');
+    const errorMsg = document.getElementById('errorMsg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = '';
+
+      if (!token) {
+        alert('Please log in first.');
+        return window.location.href = '/login';
+      }
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      data.days = Number(data.days);
+      data.hours = Number(data.hours);
+
+      try {
+        const { paymentMethod, error } = await stripe.createPaymentMethod({
+          type: 'card',
+          card: cardElement
+        });
+
+        if (error) {
+          errorMsg.textContent = error.message;
+          return;
+        }
+
+        data.paymentMethod = paymentMethod.id;
+
+        const res = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (res.status !== 200) {
+          errorMsg.textContent = result.error || result.message || 'Booking failed.';
+          return;
+        }
+
+        alert('✅ Booking & Payment Successful!');
+        window.location.href = '/home';
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = 'Something went wrong.';
+      }
+    });
+  </script>
+</body>
+
+</html>

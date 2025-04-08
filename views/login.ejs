@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+</head>
+
+<body>
+  <h2>Login</h2>
+  <form id="loginForm" action="/api/auth/user/login" method="POST">
+    <input type="text" name="email" placeholder="email">
+    <input type="text" name="mobile" placeholder="mobile">
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <div id="message"></div>
+  <div id="error"></div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const messageBox = document.getElementById('message');
+    const errorBox = document.getElementById('error');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      messageBox.innerText = '';
+      errorBox.innerText = '';
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch('/api/auth/user/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        const token = res.headers.get('Authorization');
+
+        if (result.statusCode === 200 && token) {
+          const user = result.data.user;
+
+          // Save token and user to localStorage
+          localStorage.setItem("authToken", token);
+          localStorage.setItem("user", JSON.stringify(user));
+
+          messageBox.innerHTML = `<br>
+                      ✅ ${result.data.msg} <br>
+                      👤 Welcome, <strong>${user.fullName} </strong> <br>
+                      📧 ${user.email} `;
+
+          // Redirect to booking after 2s
+          setTimeout(() => {
+            window.location.href = '/booking';
+          }, 2000);
+        } else {
+          errorBox.innerText = result.message || 'Login failed.';
+        }
+      } catch (err) {
+        errorBox.innerText = 'Something went wrong.';
+        console.error(err);
+      }
+    });
+  </script>
+
+</body>
+
+</html>

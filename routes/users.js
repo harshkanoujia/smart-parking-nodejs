@@ -7,6 +7,7 @@ const router = express.Router();
 
 const { USER_CONSTANTS } = require('../config/constant');
 const { identityManager } = require('../middleware/auth');
+const { createCustomer } = require('../services/stripeFunctions');
 const { User, validateUserRegister, validateUserUpdate } = require('../model/User');
 
 
@@ -14,211 +15,217 @@ const { User, validateUserRegister, validateUserUpdate } = require('../model/Use
 // users profile
 router.get('/profile', identityManager(['manager', 'admin', 'user']), async (req, res) => {
 
-    let criteria = {};
+  let criteria = {};
 
-    if (req.query.id ) {
-        if (!mongoose.Types.ObjectId.isValid(req.query.id)) 
-            return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
-        
-        criteria._id = new mongoose.Types.ObjectId(req.query.id);
-        
-    } else if (req.jwtData.role === "user") {
-        criteria._id = new mongoose.Types.ObjectId(req.reqUserId);  
-    
-    } else {  
-        criteria = {};                                    // admin & manager can check all users
+  if (req.query.id) {
+    if (!mongoose.Types.ObjectId.isValid(req.query.id))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
+
+    criteria._id = new mongoose.Types.ObjectId(req.query.id);
+
+  } else if (req.jwtData.role === "user") {
+    criteria._id = new mongoose.Types.ObjectId(req.reqUserId);
+
+  } else {
+    criteria = {};                                    // admin & manager can check all users
+  }
+
+  criteria.status = req.query.status ? req.query.status : "active";
+  criteria.isDeleted = false;
+
+  const user = await User.aggregate([
+    {
+      $facet: {
+        value: [
+          { $match: criteria },
+          { $project: { password: 0 } }
+        ],
+        totalUsers: [
+          { $match: criteria },
+          { $count: "count" }
+        ]
+      }
     }
+  ]);
 
-    criteria.status = req.query.status ? req.query.status : "active";
-    criteria.isDeleted = false;
+  const value = user.length === 0 ? [] : user[0].value;
+  const totalUsers = user[0].totalUsers.length === 0 ? 0 : user[0].totalUsers[0].count;
 
-    const user = await User.aggregate([
-        {
-            $facet: {
-                value: [
-                    { $match: criteria },
-                    { $project: { password: 0 } }
-                ],
-                totalUsers: [
-                    { $match: criteria },
-                    { $count: "count" }
-                ]
-            }
-        }
-    ]);
-
-    const value = user.length === 0 ? [] : user[0].value;
-    const totalUsers = user[0].totalUsers.length === 0 ? 0 : user[0].totalUsers[0].count;
-
-    return res.status(200)
-        .json({
-            apiId: req.apiId,
-            statusCode: 200,
-            message: "Success",
-            data: { totalUsers, user: value }
-        });
+  return res.status(200).json({
+    apiId: req.apiId,
+    statusCode: 200,
+    message: "Success",
+    data: { totalUsers, user: value }
+  });
 });
 
 // user signup                                                    
 router.post('/', async (req, res) => {
 
-    // validate req.body
-    const { error } = validateUserRegister(req.body);
-    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', err: error.details[0].message });
+  // validate req.body
+  const { error } = validateUserRegister(req.body);
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', err: error.details[0].message });
 
-    let criteria = {};
-    let email = "";
+  let criteria = {};
+  let email = "";
 
-    if (req.body.email) {
-        email = req.body.email.trim().toLowerCase();
-        criteria.email = email;
-    }
+  if (req.body.email) {
+    email = req.body.email.trim().toLowerCase();
+    criteria.email = email;
+  }
 
-    const mobile = req.body.mobile.trim();
-    const password = req.body.password.trim();
+  const mobile = req.body.mobile.trim();
+  const password = req.body.password.trim();
 
-    criteria.mobile = mobile;
+  criteria.mobile = mobile;
 
-    // find if the mobile pr email already exist or not 
-    let user = await User.findOne(criteria);
-    if (user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.MOBILE_EMAIL_ALREADY_EXISTS } });
+  // find if the mobile pr email already exist or not 
+  let user = await User.findOne(criteria);
+  if (user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.MOBILE_EMAIL_ALREADY_EXISTS } });
 
-    // encrypt password
-    const encryptPassword = await bcrypt.hash(password, config.get('bcryptSalt'));
+  // encrypt password
+  const encryptPassword = await bcrypt.hash(password, config.get('bcryptSalt'));
 
-    user = new User(
-        _.pick(req.body, [
-            "fullName",
-            "gender",
-            "profilePic"
-        ])
-    );
+  user = new User(
+    _.pick(req.body, [
+      "fullName",
+      "gender",
+      "profilePic"
+    ])
+  );
 
-    user.email = email;
-    user.mobile = mobile;
-    user.password = encryptPassword;
+  user.email = email;
+  user.mobile = mobile;
+  user.password = encryptPassword;
 
-    // genreate token
-    const token = user.generateAuthToken();
-    user.accessToken = token;
+  // genreate token
+  const token = user.generateAuthToken();
+  user.accessToken = token;
 
-    user.deviceToken = req.body.deviceToken ? req.body.deviceToken : "";
+  user.deviceToken = req.body.deviceToken ? req.body.deviceToken : "";
 
-    await user.save();
+  // stripe account creation
+  const metadata = { userId: user.id };
+  const customer = await createCustomer(user.fullName, user.email, metadata);
+  if (customer.statusCode != 200) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { message: customer.data } });
+  console.log("\nCUSTOMER", customer);
 
-    const response = _.pick(user, [
-        "_id",
-        "fullName",
-        "email",
-        "mobile",
-        "gender",
-        "profilePic",
-        "isOnline",
-        "isEmailVerified",
-        "isMobileVerified",
-        "status",
-        "deviceToken",
-        "insertDate",
-        "creationDate",
-        "lastUpdatedDate",
-    ]);
+  user.stripeCustomerId = customer.data.id;
 
-    return res.header("Authorization", token)
-        .status(200)
-        .json({
-            apiId: req.apiId,
-            statusCode: 200,
-            message: "Success",
-            data: { msg: USER_CONSTANTS.CREATED_SUCCESS, user: response }
-        });
+  await user.save();
+
+  const response = _.pick(user, [
+    "_id",
+    "fullName",
+    "email",
+    "mobile",
+    "gender",
+    "profilePic",
+    "isOnline",
+    "isEmailVerified",
+    "isMobileVerified",
+    "status",
+    "deviceToken",
+    "insertDate",
+    "creationDate",
+    "lastUpdatedDate"
+  ]);
+
+  return res.header("Authorization", token)
+    .status(201)
+    .json({
+      apiId: req.apiId,
+      statusCode: 201,
+      message: "Success",
+      data: { msg: USER_CONSTANTS.CREATED_SUCCESS, user: response }
+    });
 });
 
 // user update
 router.put('/:id?', identityManager(['admin', 'user']), async (req, res) => {
-    // req resource
-    const { error } = validateUserUpdate(req.body);
-    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  // req resource
+  const { error } = validateUserUpdate(req.body);
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
 
-    const criteria = {};
-    if (req.jwtData.role === "user") {
-        criteria._id = req.reqUserId;
-    } else {
-        if (req.params.id && !mongoose.Types.ObjectId.isValid(req.params.id))
-            return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
-        
-        criteria._id = req.params.id;
-    }
+  const criteria = {};
+  if (req.jwtData.role === "user") {
+    criteria._id = req.reqUserId;
+  } else {
+    if (req.params.id && !mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: MANAGER_CONSTANTS.INVALID_ID  });
 
-    // find exist or not
-    let user = await User.findOne(criteria);
-    if (!user) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: USER_CONSTANTS.INVALID_USER });
+    criteria._id = req.params.id;
+  }
 
-    const { fullName, email, mobile, gender, profilePic, deviceToken } = req.body;
+  // find exist or not
+  let user = await User.findOne(criteria);
+  if (!user) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", error: USER_CONSTANTS.INVALID_USER });
 
-    user.fullName = fullName?.trim() || user.fullName;
-    user.gender = gender?.trim() || user.gender;
-    user.profilePic = profilePic?.trim() || user.profilePic;
+  const { fullName, email, mobile, gender, profilePic, deviceToken } = req.body;
 
-    // pending case if user want to update email & mobile and we have to check if it already in used
-    user.email = email?.trim().toLowerCase() || user.email;
-    user.mobile = mobile?.trim() || user.mobile;
+  user.fullName = fullName?.trim() || user.fullName;
+  user.gender = gender?.trim() || user.gender;
+  user.profilePic = profilePic?.trim() || user.profilePic;
 
-    // // genreate token    // it can be updated the token if there is not present email and mobile
-    // const token = user.generateAuthToken();
-    // user.accessToken = token;
+  // pending case if user want to update email & mobile and we have to check if it already in used
+  user.email = email?.trim().toLowerCase() || user.email;
+  user.mobile = mobile?.trim() || user.mobile;
 
-    user.deviceToken = deviceToken ? deviceToken : user.deviceToken;
+  // // genreate token    // it can be updated the token if there is not present email and mobile
+  // const token = user.generateAuthToken();
+  // user.accessToken = token;
 
-    user.lastUpdatedDate = Math.floor(Date.now() / 1000);
+  user.deviceToken = deviceToken ? deviceToken : user.deviceToken;
 
-    await user.save();
+  user.lastUpdatedDate = Math.floor(Date.now() / 1000);
 
-    const response = _.pick(user, [
-        "_id",
-        "fullName",
-        "email",
-        "mobile",
-        "gender",
-        "profilePic",
-        "isOnline",
-        "isEmailVerified",
-        "isMobileVerified",
-        "totalBookings",
-        "status",
-        "deviceToken",
-        "insertDate",
-        "creationDate",
-        "lastUpdatedDate",
-    ]);
+  await user.save();
 
-    return res.status(200)
-        .json({
-            apiId: req.apiId,
-            statusCode: 200,
-            message: "Success",
-            data: { msg: USER_CONSTANTS.UPDATE_SUCCESS, user: response }
-        });
+  const response = _.pick(user, [
+    "_id",
+    "fullName",
+    "email",
+    "mobile",
+    "gender",
+    "profilePic",
+    "isOnline",
+    "isEmailVerified",
+    "isMobileVerified",
+    "totalBookings",
+    "status",
+    "deviceToken",
+    "insertDate",
+    "creationDate",
+    "lastUpdatedDate",
+  ]);
+
+  return res.status(200).json({
+    apiId: req.apiId,
+    statusCode: 200,
+    message: "Success",
+    data: { msg: USER_CONSTANTS.UPDATE_SUCCESS, user: response }
+  });
 });
 
 // user delete 
 router.delete('/:id', identityManager(['admin', 'user']), async (req, res) => {
 
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-        return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: USER_CONSTANTS.INVALID_USER });
-    }
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", error: USER_CONSTANTS.INVALID_USER });
+  }
 
-    const user = await user.findOne({ _id: req.params.id });
-    if (!user) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: USER_CONSTANTS.INVALID_USER });
+  const user = await user.findOne({ _id: req.params.id });
+  if (!user) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", error: USER_CONSTANTS.INVALID_USER });
 
-    user.isDeleted = true;
-    user.status = "deleted";
-    user.deletedBy = req.reqUserId;
-    user.deletedByRole = req.jwtData.role;
-    user.deleteDate = Math.floor(Date.now() / 1000);
+  user.isDeleted = true;
+  user.status = "deleted";
+  user.deletedBy = req.reqUserId;
+  user.deletedByRole = req.jwtData.role;
+  user.deleteDate = Math.floor(Date.now() / 1000);
 
-    user.save();
+  user.save();
 
-    return res.status(200).send({ apiId: req.apiId, statusCode: 200, message: "Success", data: USER_CONSTANTS.DELETE_SUCCESS });
+  return res.status(200).send({ apiId: req.apiId, statusCode: 200, message: "Success", data: USER_CONSTANTS.DELETE_SUCCESS });
 });
 
 

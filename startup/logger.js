@@ -22,37 +22,51 @@ module.exports = function (req, res, next) {
   }
 
   // manually stored base URL because it changes when error occur
-  let baseUrl = req.originalUrl.split("?")[0].split("/").slice(0, -1).join("/");      
+  let completeUrl = req.originalUrl.split("?")[0];              // Remove query params
+  let urlSegments = completeUrl.split("/").filter(Boolean);     // Remove empty strings
+
+  // Base URL logic to handle nested and simple routes
+  let baseUrl = urlSegments.length > 2 ? "/" + urlSegments.slice(0, urlSegments.length - 1).join("/") : completeUrl;
 
   // api req save in db when res complete 
   const loggerFunction = async () => {
     cleanup();
-    // console.log("Before logging : ", res.req.apiId, "\n" )    
+    // console.log("Before logging : ", res.req.apiId)    
 
     try {
-      // console.log("REQUEST ===> ", req, "\n" )     // IncomingMessage
-      // console.log("RESPONSE ===> ", res, "\n" )    // ServerResponse
+      // console.log("REQUEST ===> ", req)     // IncomingMessage
+      // console.log("RESPONSE ===> ", res)    // ServerResponse
 
       if (res.req.apiId) {
         let endTime = new Date();
         let responseTimeInMilli = endTime - req.startTime;
 
-        let email, role;
+        let email, role, url;
 
         if (req.jwtData) {
           email = req.jwtData.email;
           role = req.jwtData.role;
         }
 
+        // Clean baseUrl and completeUrl
+        baseUrl = baseUrl !== '/' ? baseUrl.replace(/\/+$/, '') : baseUrl;      // because there is '/' is extra 
+        let completeUrl = req.originalUrl.replace(/\/+$/, '');
+        
         let tPath = req.route ? req.route.path : "";
+
+        if (!tPath || tPath === '/') {
+          url = baseUrl;                  // Don't add trailing slash
+        } else {
+          url = (baseUrl + '/' + tPath).replace(/\/+/g, '/');         // remove the slash
+        }
 
         await logApis(
           req.apiId,
           req.method,
           req.reqUserId,
-          req.originalUrl,    // completeurl
-          baseUrl + tPath,    // url
-          baseUrl,            // base url
+          completeUrl,             // req.originalUrl,    // completeurl
+          url,                     // baseUrl + tPath,    // url
+          baseUrl,                 // base url
           req.query,
           req.params,
           email,

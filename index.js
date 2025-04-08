@@ -6,6 +6,17 @@ const app = express();
 const { Seed } = require("./startup/seed");
 
 
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+
+app.get("/", (req, res) => res.render("home"));
+app.get("/signup", (req, res) => res.render("signup"));
+app.get("/login", (req, res) => res.render("login"));
+app.get('/booking', (req, res) => res.render("booking", {
+  stripePublicKey: config.get("STRIPE_PUBLISHABLE_KEY")
+}));
+
+
 require('./startup/config')();          // environement check 
 require('./startup/logging')();         // logging handle error and crashes
 require('./startup/db')();              // db connection
@@ -15,10 +26,10 @@ require('./startup/routes')(app);       // routes load
 require('./startup/prod')(app);         // production level
 require('./startup/logger');            // apiReq save 
 
-
+// require('./services/stripeFunctions')
 Seed();
 
 
 //Start Server
-const port =  process.env.PORT || config.get("port"); 
-app.listen(port , () => winston.info(`Server is listening on ${port}...`));
+const port = process.env.PORT || config.get("port");
+app.listen(port, () => winston.info(`Server is listening on ${port}...`));

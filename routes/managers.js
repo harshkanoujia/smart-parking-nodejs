@@ -14,210 +14,208 @@ const { Manager, validateManagerUpdate, validateManagerRegister } = require('../
 // manager profile
 router.get('/profile', identityManager(['manager', 'admin']), async (req, res) => {
 
-    let criteria = {};
+  let criteria = {};
 
-    if (req.jwtData.role === "manager") {
-        criteria._id = new mongoose.Types.ObjectId(req.reqUserId);
-    
-    } else if (req.query.id && req.jwtData.role === "admin") {
-        if (!mongoose.Types.ObjectId.isValid(req.query.id)) 
-            return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
-        
-        criteria._id = new mongoose.Types.ObjectId(req.query.id);   // for admin check single account
-    
-    } else {
-        criteria = {};                                              // admin check all managers
+  if (req.jwtData.role === "manager") {
+    criteria._id = new mongoose.Types.ObjectId(req.reqUserId);
+
+  } else if (req.query.id && req.jwtData.role === "admin") {
+    if (!mongoose.Types.ObjectId.isValid(req.query.id))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
+
+    criteria._id = new mongoose.Types.ObjectId(req.query.id);   // for admin check single account
+
+  } else {
+    criteria = {};                                              // admin check all managers
+  }
+
+  criteria.status = req.query.status ? req.query.status : "active";
+
+  const manager = await Manager.aggregate([
+    {
+      $facet: {
+        value: [
+          { $match: criteria },
+          { $project: { password: 0 } }
+        ],
+        totalManagers: [
+          { $match: criteria },
+          { $count: "count" }
+        ]
+      }
     }
+  ]);
 
-    criteria.status = req.query.status ? req.query.status : "active";
+  const value = manager.length === 0 ? [] : manager[0].value;
+  const totalManagers = manager[0].totalManagers.length === 0 ? 0 : manager[0].totalManagers[0].count;
 
-    const manager = await Manager.aggregate([
-        {
-            $facet: {
-                value: [
-                    { $match: criteria },
-                    { $project: { password: 0 } }
-                ],
-                totalManagers: [
-                    { $match: criteria },
-                    { $count: "count" }
-                ]
-            }
-        }
-    ]);
-
-    const value = manager.length === 0 ? [] : manager[0].value;
-    const totalManagers = manager[0].totalManagers.length === 0 ? 0 : manager[0].totalManagers[0].count;
-
-    return res.status(200)
-        .json({
-            apiId: req.apiId,
-            statusCode: 200,
-            message: "Success",
-            data: { totalManagers, manager: value }
-        });
+  return res.status(200).json({
+    apiId: req.apiId,
+    statusCode: 200,
+    message: "Success",
+    data: { totalManagers, manager: value }
+  });
 });
 
 // manager create                                                       
 router.post('/', async (req, res) => {
 
-    // validate req.body
-    const { error } = validateManagerRegister(req.body);
-    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', err: error.details[0].message });
+  // validate req.body
+  const { error } = validateManagerRegister(req.body);
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', err: error.details[0].message });
 
-    let criteria = {};
-    let email = "";
+  let criteria = {};
+  let email = "";
 
-    if (req.body.email) {
-        email = req.body.email.trim().toLowerCase();
-        criteria.email = email;
-    }
+  if (req.body.email) {
+    email = req.body.email.trim().toLowerCase();
+    criteria.email = email;
+  }
 
-    const mobile = req.body.mobile.trim();
-    const password = req.body.password.trim();
+  const mobile = req.body.mobile.trim();
+  const password = req.body.password.trim();
 
-    criteria.mobile = mobile;
+  criteria.mobile = mobile;
 
-    // find if the mobile already exist or not 
-    let manager = await Manager.findOne(criteria);
-    if (manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.MOBILE_EMAIL_ALREADY_EXISTS } });
+  // find if the mobile already exist or not 
+  let manager = await Manager.findOne(criteria);
+  if (manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.MOBILE_EMAIL_ALREADY_EXISTS } });
 
-    // encrypt password
-    const encryptPassword = await bcrypt.hash(password, config.get('bcryptSalt'));
+  // encrypt password
+  const encryptPassword = await bcrypt.hash(password, config.get('bcryptSalt'));
 
-    manager = new Manager(
-        _.pick(req.body, [
-            "fullName",
-            "gender",
-            "profilePic"
-        ])
-    );
+  manager = new Manager(
+    _.pick(req.body, [
+      "fullName",
+      "gender",
+      "profilePic"
+    ])
+  );
 
-    manager.email = email;
-    manager.mobile = mobile;
-    manager.password = encryptPassword;
+  manager.email = email;
+  manager.mobile = mobile;
+  manager.password = encryptPassword;
 
-    // genreate token
-    const token = manager.generateAuthToken();
-    manager.accessToken = token;
+  // genreate token
+  const token = manager.generateAuthToken();
+  manager.accessToken = token;
 
-    manager.deviceToken = req.body.deviceToken || "";
-    manager.status = 'pending';
+  manager.deviceToken = req.body.deviceToken || "";
+  manager.status = 'pending';
 
-    await manager.save();
+  await manager.save();
 
-    const response = _.pick(manager, [
-        "_id",
-        "fullName",
-        "email",
-        "mobile",
-        "gender",
-        "profilePic",
-        "isOnline",
-        "isEmailVerified",
-        "isMobileVerified",
-        "status",
-        "deviceToken",
-        "insertDate",
-        "creationDate",
-        "lastUpdatedDate",
-    ]);
+  const response = _.pick(manager, [
+    "_id",
+    "fullName",
+    "email",
+    "mobile",
+    "gender",
+    "profilePic",
+    "isOnline",
+    "isEmailVerified",
+    "isMobileVerified",
+    "status",
+    "deviceToken",
+    "insertDate",
+    "creationDate",
+    "lastUpdatedDate",
+  ]);
 
-    return res.header("Authorization", token)
-        .status(200)
-        .json({
-            apiId: req.apiId,
-            statusCode: 200,
-            message: "Success",
-            data: { msg: MANAGER_CONSTANTS.CREATED_SUCCESS, manager: response }
-        });
+  return res.header("Authorization", token)
+    .status(200)
+    .json({
+      apiId: req.apiId,
+      statusCode: 200,
+      message: "Success",
+      data: { msg: MANAGER_CONSTANTS.CREATED_SUCCESS, manager: response }
+    });
 });
 
 // manager update
 router.put('/:id?', identityManager(['admin', 'manager']), async (req, res) => {
-    // req resource
-    const { error } = validateManagerUpdate(req.body)
-    if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  // req resource
+  const { error } = validateManagerUpdate(req.body)
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
 
-    const criteria = {};
-    if (req.jwtData.role === "manager") {
-        criteria._id = req.reqUserId;
-    } else {
-        if (req.params.id && !mongoose.Types.ObjectId.isValid(req.params.id))
-            return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
-        
-        criteria._id = req.params.id;
-    }
+  const criteria = {};
+  if (req.jwtData.role === "manager") {
+    criteria._id = req.reqUserId;
+  } else {
+    if (req.params.id && !mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
 
-    // find exist or not
-    let manager = await Manager.findOne(criteria);
-    if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+    criteria._id = req.params.id;
+  }
 
-    const { fullName, email, mobile, gender, profilePic, deviceToken } = req.body;
+  // find exist or not
+  let manager = await Manager.findOne(criteria);
+  if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
 
-    manager.fullName = fullName?.trim() || manager.fullName;
-    manager.gender = gender?.trim() || manager.gender;
-    manager.profilePic = profilePic?.trim() || manager.profilePic;
+  const { fullName, email, mobile, gender, profilePic, deviceToken } = req.body;
 
-    // pending case if manager want to update email & mobile and we have to check if it already in used
-    manager.email = email?.trim().toLowerCase() || manager.email;
-    manager.mobile = mobile?.trim() || manager.mobile;
+  manager.fullName = fullName?.trim() || manager.fullName;
+  manager.gender = gender?.trim() || manager.gender;
+  manager.profilePic = profilePic?.trim() || manager.profilePic;
 
-    // // genreate token    // it can be updated the token if there is not present email and mobile
-    // const token = manager.generateAuthToken();
-    // manager.accessToken = token;
+  // pending case if manager want to update email & mobile and we have to check if it already in used
+  manager.email = email?.trim().toLowerCase() || manager.email;
+  manager.mobile = mobile?.trim() || manager.mobile;
 
-    manager.deviceToken = deviceToken ? deviceToken : manager.deviceToken;
+  // // genreate token    // it can be updated the token if there is not present email and mobile
+  // const token = manager.generateAuthToken();
+  // manager.accessToken = token;
 
-    manager.lastUpdatedDate = Math.floor(Date.now() / 1000);
+  manager.deviceToken = deviceToken ? deviceToken : manager.deviceToken;
 
-    await manager.save();
+  manager.lastUpdatedDate = Math.floor(Date.now() / 1000);
 
-    const response = _.pick(manager, [
-        "_id",
-        "fullName",
-        "email",
-        "mobile",
-        "gender",
-        "profilePic",
-        "isOnline",
-        "isEmailVerified",
-        "isMobileVerified",
-        "status",
-        "deviceToken",
-        "insertDate",
-        "creationDate",
-        "lastUpdatedDate",
-    ]);
+  await manager.save();
 
-    return res.status(200)
-        .json({
-            apiId: req.apiId,
-            statusCode: 200,
-            message: "Success",
-            data: { msg: MANAGER_CONSTANTS.UPDATE_SUCCESS, manager: response }
-        });
+  const response = _.pick(manager, [
+    "_id",
+    "fullName",
+    "email",
+    "mobile",
+    "gender",
+    "profilePic",
+    "isOnline",
+    "isEmailVerified",
+    "isMobileVerified",
+    "status",
+    "deviceToken",
+    "insertDate",
+    "creationDate",
+    "lastUpdatedDate",
+  ]);
+
+  return res.status(200).json({
+    apiId: req.apiId,
+    statusCode: 200,
+    message: "Success",
+    data: { msg: MANAGER_CONSTANTS.UPDATE_SUCCESS, manager: response }
+  });
 });
 
 // manager delete
 router.delete('/:id', identityManager(['admin', 'manager']), async (req, res) => {
 
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-        return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
-    }
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+  }
 
-    const manager = await Manager.findOne({ _id: req.params.id });
-    if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+  const manager = await Manager.findOne({ _id: req.params.id });
+  if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
 
-    manager.isDeleted = true;
-    manager.status = "deleted";
-    manager.deletedBy = req.reqUserId;
-    manager.deletedByRole = req.jwtData.role;
-    manager.deleteDate = Math.floor(Date.now() / 1000);
+  manager.isDeleted = true;
+  manager.status = "deleted";
+  manager.deletedBy = req.reqUserId;
+  manager.deletedByRole = req.jwtData.role;
+  manager.deleteDate = Math.floor(Date.now() / 1000);
 
-    manager.save();
+  manager.save();
 
-    return res.status(200).send({ apiId: req.apiId, statusCode: 200, message: "Success", data: MANAGER_CONSTANTS.DELETE_SUCCESS });
+  return res.status(200).send({ apiId: req.apiId, statusCode: 200, message: "Success", data: MANAGER_CONSTANTS.DELETE_SUCCESS });
 });
 
 
