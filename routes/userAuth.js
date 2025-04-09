@@ -14,7 +14,7 @@ router.post('/login', async (req, res) => {
 
   // validate req.body
   const { error } = validateUserLogin(req.body)
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message} });
 
   let criteria = {};
 
@@ -26,11 +26,11 @@ router.post('/login', async (req, res) => {
 
   // find if the email already exist or not 
   const user = await User.findOne(criteria);
-  if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: USER_CONSTANTS.INVALID_CREDENTIALS } });
+  if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: USER_CONSTANTS.INVALID_CREDENTIALS } });
 
   // authentication 
   const verifyPassword = await bcrypt.compare(password, user.password)
-  if (!verifyPassword) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: USER_CONSTANTS.INVALID_PASSWORD } });
+  if (!verifyPassword) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: USER_CONSTANTS.INVALID_PASSWORD } });
 
   if (req.body.deviceToken) user.deviceToken = req.body.deviceToken;
 
@@ -44,6 +44,7 @@ router.post('/login', async (req, res) => {
 
   const response = _.pick(user, [
     "_id",
+    "stripeCustomerId",
     "fullName",
     "email",
     "mobile",
@@ -52,9 +53,13 @@ router.post('/login', async (req, res) => {
     "isOnline",
     "isEmailVerified",
     "isMobileVerified",
-    "totalBookings",
     "status",
+    "totalBookings",
     "deviceToken",
+    "location",
+    "city",
+    "state",
+    "country",
     "insertDate",
     "creationDate",
     "lastUpdatedDate",
@@ -74,7 +79,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', identityManager(["user"]), async (req, res) => {
 
   const user = await User.findById(req.reqUserId);
-  if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: USER_CONSTANTS.INVALID_USER } });
+  if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: USER_CONSTANTS.INVALID_USER } });
 
   user.isOnline = false;
   user.accessToken = "";

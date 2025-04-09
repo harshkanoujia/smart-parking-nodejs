@@ -87,7 +87,11 @@ function validateUserRegister(post) {
     password: Joi.string().min(6).max(250).required(),
     gender: Joi.string().valid('male', 'female', 'other').required(),
     profilePic: Joi.string().max(255).allow('', null).optional(),
-    deviceToken: Joi.string().max(255).allow('', null).optional()
+    deviceToken: Joi.string().max(255).allow('', null).optional(),
+    location: Joi.object(),
+    city: Joi.string().min(1).max(150).required(),
+    state: Joi.string().min(1).max(50).required(),
+    country: Joi.string().min(1).max(50).required(),
   });
   return Schema.validate(post);
 }
@@ -109,9 +113,13 @@ function validateUserUpdate(put) {
     email: Joi.string().email().min(5).max(150).optional(),
     mobile: Joi.string().min(10).max(12).optional(),
     // password: Joi.string().min(3).max(250).allow(""),    // forgot password
-    gender: Joi.string().valid('male', 'female', 'other').min(4).optional(),
+    gender: Joi.string().valid('male', 'female', 'other').optional(),
     profilePic: Joi.string().min(1).max(250).optional(),
-    deviceToken: Joi.string().min(1).max(250).optional()
+    deviceToken: Joi.string().min(1).max(250).optional(),
+    location: Joi.object(),
+    city: Joi.string().min(1).max(150).optional(),
+    state: Joi.string().min(1).max(50).optional(),
+    country: Joi.string().min(1).max(50).optional(),
   });
   return Schema.validate(put);
 }
