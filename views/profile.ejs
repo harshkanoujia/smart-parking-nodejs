@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>User Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: #1e293b;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar a {
+      color: #cbd5e1;
+      margin-left: 1.5rem;
+      text-decoration: none;
+    }
+
+    .navbar a:hover {
+      color: white;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .profile-pic {
+      overflow: hidden;
+    }
+
+    .profile-info h2 {
+      margin: 0;
+      color: #1e293b;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+    }
+
+    .online {
+      background-color: #d1fae5;
+      color: #047857;
+    }
+
+    .offline {
+      background-color: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .profile-item {
+      font-size: 1rem;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .profile-item span {
+      font-weight: bold;
+      color: #0f172a;
+    }
+
+    .verified {
+      color: #16a34a !important;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+
+    .not-verified {
+      color: #dc2626 !important;
+      /* Red */
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding: 1rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .navbar a {
+        margin: 0.5rem 0 0 0;
+      }
+    }
+  </style>
+</head>
+
+<!-- 👇 Only the body and script updated below to keep it clean -->
+
+<body>
+  <div class="navbar">
+    <h2><a href="/dashboard">🚗 Parking Dashboard</a></h2>
+    <div>
+      <a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+      <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-pic" id="profilePic">👤</div>
+      <div class="profile-info">
+        <h2 id="fullName">Loading...</h2>
+        <div id="onlineStatus" class="status-badge offline">Offline</div>
+      </div>
+    </div>
+
+    <!-- Basic Info Section -->
+    <div class="profile-grid">
+      <div class="profile-item" style="position: relative;">
+        <span style="font-weight: bold; color: #0f172a;">Email:</span>
+        <span id="email" style="margin-left: 5px;">Loading...</span>
+
+        <span id="emailVerifiedIcon"
+          style=" position: absolute; top: -25px; right: 0; font-size: 0.7rem; padding: 2px 6px; border-radius: 9999px; background-color: #fee2e2; color: #b91c1c; font-weight: 600;">
+          Not Verified
+        </span>
+      </div>
+
+      <!-- MOBILE FIELD -->
+      <div class="profile-item" style="position: relative;">
+        <span style="font-weight: bold; color: #0f172a;">Mobile:</span>
+        <span id="mobile" style="margin-left: 5px;">Loading...</span>
+
+        <span id="mobileVerifiedIcon"
+          style="position: absolute;top: -25px;right: 0;font-size: 0.7rem;padding: 2px 6px;border-radius: 9999px;background-color: #dcfce7;color: #047857;font-weight: 600;">
+          Verified
+        </span>
+      </div>
+      <div class="profile-item">
+        <span>Gender:</span> <br />
+        <span id="gender">Loading...</span>
+      </div>
+      <div class="profile-item">
+        <span>Account Status:</span> <br />
+        <span id="status">Loading...</span>
+      </div>
+      <div class="profile-item">
+        <span>Total Bookings:</span> <br />
+        <span id="totalBookings">0</span>
+      </div>
+    </div>
+
+    <!-- Location Info -->
+    <h3 style="margin-top: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">🌍 Location</h3>
+    <div class="profile-grid">
+      <div class="profile-item"><span>City:</span> <br /><span id="city">N/A</span></div>
+      <div class="profile-item"><span>State:</span> <br /><span id="state">N/A</span></div>
+      <div class="profile-item"><span>Country:</span> <br /><span id="country">N/A</span></div>
+    </div>
+
+    <!-- Vehicle Info -->
+    <h3 style="margin-top: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">🚘 Vehicles Owned</h3>
+    <ul id="vehicleList" style="list-style: none; padding-left: 0; margin-top: 1rem;"></ul>
+  </div>
+
+  <div class="footer">
+    <p>&copy; <%= new Date().getFullYear() %> Parking Management System | All Rights Reserved</p>
+  </div>
+
+  <script>
+    async function getProfile() {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        window.location.href = '/login'; // Or your actual login route
+        return;
+      }
+      try {
+        const res = await fetch('/api/users/profile', {
+          method: 'GET',
+          headers: { 'Authorization': token }
+        });
+
+        const response = await res.json();
+
+        if (response.statusCode !== 200) {
+          alert("Failed to load profile.");
+          return;
+        }
+
+        const user = response.data.user[0];
+
+        document.getElementById('fullName').textContent = user.fullName || 'N/A';
+        document.getElementById('email').textContent = user.email || 'N/A';
+        document.getElementById('mobile').textContent = user.mobile || 'N/A';
+        document.getElementById('gender').textContent = user.gender || 'N/A';
+        document.getElementById('status').textContent = user.status || 'N/A';
+        document.getElementById('totalBookings').textContent = user.totalBookings ?? 0;
+        document.getElementById('city').textContent = user.city || 'N/A';
+        document.getElementById('state').textContent = user.state || 'N/A';
+        document.getElementById('country').textContent = user.country || 'N/A';
+
+        // Profile Picture
+        if (user.profilePic) {
+          document.getElementById('profilePic').innerHTML = `<img src="${user.profilePic}" alt="Profile" style="
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;">`;
+        }
+
+        // Online Status
+        const statusBadge = document.getElementById('onlineStatus');
+        if (user.isOnline) {
+          statusBadge.classList.remove('offline');
+          statusBadge.classList.add('online');
+          statusBadge.textContent = 'Online';
+        }
+
+        const emailBadge = document.getElementById('emailVerifiedIcon');
+        emailBadge.textContent = user.isEmailVerified ? "Verified" : "Not Verified";
+        emailBadge.style.backgroundColor = user.isEmailVerified ? "#dcfce7" : "#fee2e2";
+        emailBadge.style.color = user.isEmailVerified ? "#047857" : "#b91c1c";
+
+        const mobileBadge = document.getElementById('mobileVerifiedIcon');
+        mobileBadge.textContent = user.isMobileVerified ? "Verified" : "Not Verified";
+        mobileBadge.style.backgroundColor = user.isMobileVerified ? "#dcfce7" : "#fee2e2";
+        mobileBadge.style.color = user.isMobileVerified ? "#047857" : "#b91c1c";
+
+        // Vehicles (Dynamic)
+        const vehicleIcons = {
+          car: "🚗",
+          bike: "🏍️",
+          activa: "🛵",
+          truck: "🚚",
+          bus: "🚌",
+        };
+
+        const vehicles = user.vehicles || [];
+        const vehicleList = document.getElementById('vehicleList');
+        vehicleList.innerHTML = "";
+
+        if (vehicles.length > 0) {
+          vehicles.forEach(v => {
+            const lower = v.toLowerCase();
+            const matched = Object.keys(vehicleIcons).find(key => lower.includes(key));
+            const icon = matched ? vehicleIcons[matched] : "🚘";
+            vehicleList.innerHTML += `<li style="margin-bottom: 0.5rem;">${icon} ${v}</li>`;
+          });
+        } else {
+          vehicleList.innerHTML = `<li style="color:#64748b;">No vehicles listed</li>`;
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong while fetching profile.");
+      }
+    }
+
+    window.onload = getProfile;
+
+    function logoutUser() {
+      const token = localStorage.getItem('authToken');
+
+      fetch('/api/auth/user/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': token
+        }
+      })
+        .then(res => {
+          localStorage.removeItem('authToken'); // Token clear
+          localStorage.removeItem('user');      // Optional
+          window.location.href = '/';           // Redirect
+        })
+        .catch(err => {
+          console.error("Logout error:", err);
+          alert("Something went wrong.");
+        });
+    }
+
+  </script>
+</body>
+
+
+</html>

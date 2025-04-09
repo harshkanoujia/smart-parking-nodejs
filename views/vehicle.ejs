@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Add Vehicle</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    .navbar {
+      background-color: #1e293b;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar h2 a {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .navbar a {
+      color: #cbd5e1;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .navbar a:hover {
+      color: #ffffff;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .container h2 {
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+      text-align: center;
+      color: #0f172a;
+    }
+
+    form label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+
+    input,
+    select {
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.8rem;
+      width: 100%;
+      background-color: #0ea5e9;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0284c7;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <h2><a href="/dashboard">🚗 Parking Dashboard</a></h2>
+    <div>
+      <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+      <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Register Your Vehicle</h2>
+
+    <form id="vehicleForm">
+      <label for="vehicleType">Vehicle Type</label>
+      <select id="vehicleType" required>
+        <option value="">-- Select --</option>
+        <option value="car">Car</option>
+        <option value="bike">Bike</option>
+        <option value="bus">Bus</option>
+        <option value="truck">Truck</option>
+        <option value="activa">Activa</option>
+      </select>
+
+      <label for="model">Model</label>
+      <input type="text" id="model" required />
+
+      <label for="modelYear">Model Year</label>
+      <select id="modelYear" required></select>
+
+      <label for="registrationNo">Number Plate</label>
+      <input type="text" id="registrationNo" required />
+
+      <label for="vehicleBrand">Vehicle Brand</label>
+      <input list="brandOptions" name="vehicleBrand" id="vehicleBrand" required />
+      <datalist id="brandOptions">
+        <option value="Toyota" />
+        <option value="Honda" />
+        <option value="Hyundai" />
+        <option value="Suzuki" />
+        <option value="Kia" />
+        <option value="Tata" />
+        <option value="Mahindra" />
+        <option value="Ford" />
+        <option value="Chevrolet" />
+        <option value="BMW" />
+        <option value="Mercedes-Benz" />
+        <option value="Audi" />
+        <option value="Tesla" />
+        <option value="Royal Enfield" />
+        <option value="Bajaj" />
+        <option value="TVS" />
+        <option value="Hero" />
+        <option value="Yamaha" />
+        <option value="Skoda" />
+        <option value="Volkswagen" />
+      </datalist>
+
+
+      <label for="fuelType">Fuel Type</label>
+      <select id="fuelType" required>
+        <option value="">-- Select --</option>
+        <option value="petrol">Petrol</option>
+        <option value="diesel">Diesel</option>
+        <option value="electric">Electric</option>
+        <option value="hybrid">Hybrid</option>
+      </select>
+
+      <label for="color">Color (optional)</label>
+      <input type="text" id="color" />
+
+      <label for="insuranceValidTill">Insurance Valid Till (optional)</label>
+      <input type="date" id="insuranceValidTill" />
+
+      <label for="images">Image URL (optional)</label>
+      <input type="text" id="images" />
+
+      <button type="submit">Add Vehicle</button>
+    </form>
+  </div>
+
+  <script>
+    const yearSelect = document.getElementById("modelYear");
+    const currentYear = new Date().getFullYear();
+
+    for (let year = currentYear; year >= 1990; year--) {
+      const option = document.createElement("option");
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    }
+
+    document.getElementById("vehicleForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const payload = {
+        vehicleType: document.getElementById("vehicleType").value,
+        model: document.getElementById("model").value,
+        modelYear: Number(document.getElementById("modelYear").value),
+        registrationNo: document.getElementById("registrationNo").value,
+        vehicleBrand: document.getElementById("vehicleBrand").value,
+        fuelType: document.getElementById("fuelType").value,
+        color: document.getElementById("color").value || null,
+        insuranceValidTill: document.getElementById("insuranceValidTill").value || null,
+        images: document.getElementById("images").value || null
+      };
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        alert('Please log in first.');
+        return window.location.href = '/login';
+      }
+
+      try {
+        const res = await fetch("/api/vehicles", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.status !== 200) {
+          alert(data.message || 'Vehicle registration failed.');
+          return;
+        }
+
+        alert("Vehicle added successfully!");
+        window.location.href = "/dashboard";
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong");
+      }
+    });
+
+
+    function logoutUser() {
+      const token = localStorage.getItem('authToken');
+
+      fetch('/api/auth/user/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': token
+        }
+      })
+        .then(res => {
+          localStorage.removeItem('authToken'); // Token clear
+          localStorage.removeItem('user');      // Optional
+          window.location.href = '/';           // Redirect
+        })
+        .catch(err => {
+          console.error("Logout error:", err);
+          alert("Something went wrong.");
+        });
+    }
+  </script>
+
+  <div class="footer">
+    <p>&copy; <%= new Date().getFullYear() %> Parking Management Software | All Rights Reserved</p>
+  </div>
+
+</body>
+
+</html>

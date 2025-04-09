@@ -13,7 +13,7 @@ const { Manager, validateManagerLogin } = require('../model/Manager');
 router.post('/login', async (req, res) => {
   // validate req.body
   const { error } = validateManagerLogin(req.body)
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
   let criteria = {};
 
@@ -25,11 +25,11 @@ router.post('/login', async (req, res) => {
 
   // find if the email already exist or not 
   const manager = await Manager.findOne(criteria);
-  if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: MANAGER_CONSTANTS.INVALID_CREDENTIALS } });
+  if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: MANAGER_CONSTANTS.INVALID_CREDENTIALS } });
 
   // authentication 
   const verifyPassword = await bcrypt.compare(password, manager.password)
-  if (!verifyPassword) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: MANAGER_CONSTANTS.INVALID_PASSWORD } });
+  if (!verifyPassword) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: MANAGER_CONSTANTS.INVALID_PASSWORD } });
 
   if (req.body.deviceToken) manager.deviceToken = req.body.deviceToken;
 
@@ -74,7 +74,7 @@ router.post('/logout', identityManager(["manager"]), async (req, res) => {
   const id = req.reqUserId;
 
   const manager = await Manager.findOne({ _id: id });
-  if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: MANAGER_CONSTANTS.INVALID_ID } });
+  if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
 
   manager.isOnline = false;
   manager.accessToken = "";

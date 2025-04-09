@@ -14,15 +14,15 @@ router.post('/login', async (req, res) => {
 
   // validate req.body
   const { error } = validateUserLogin(req.body)
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message} });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
   let criteria = {};
 
-  if (req.body.email) criteria.email = req.body.email.toLowerCase().trim();                                    // using toLowercase() here because it can not validate it if i give any capital letter
+  if (req.body.email) criteria.email = req.body.email.toLowerCase().trim();
 
   if (req.body.mobile) criteria.mobile = req.body.mobile.trim();
 
-  const password = req.body.password.trim();                                                                   // using trim here because it can not validate password if give space in token
+  const password = req.body.password.trim();
 
   // find if the email already exist or not 
   const user = await User.findOne(criteria);
@@ -38,6 +38,7 @@ router.post('/login', async (req, res) => {
   const token = user.generateAuthToken();
   user.accessToken = token;
 
+  user.status = "active";
   user.isOnline = true;
 
   await user.save();
@@ -73,7 +74,7 @@ router.post('/login', async (req, res) => {
       message: "Success",
       data: { msg: USER_CONSTANTS.LOGGED_IN, user: response }
     });
-})
+});
 
 // user logout
 router.post('/logout', identityManager(["user"]), async (req, res) => {

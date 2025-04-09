@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
 
-// User Schema
+// user Schema
 const userSchema = new mongoose.Schema({
   stripeCustomerId: { type: String, default: "" },
 
@@ -32,7 +32,9 @@ const userSchema = new mongoose.Schema({
   city: { type: String, trim: true, default: "" },
   state: { type: String, trim: true, default: "" },
   country: { type: String, trim: true, default: "" },
-  
+
+  vehicles: { type: [String] },
+
   insertDate: {
     type: Number,
     default: () => {

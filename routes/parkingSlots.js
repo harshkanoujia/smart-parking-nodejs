@@ -17,28 +17,28 @@ router.get('/', identityManager(['admin', 'manager']), async (req, res) => {
 
   if (req.query.id) {
     const slot = await ParkingSlot.findById(req.query.id);
-    if (!slot) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { message: PARK_AREA_SLOT_CONSTANTS.NOT_FOUND } });
+    if (!slot) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: PARK_AREA_SLOT_CONSTANTS.NOT_FOUND } });
 
     criteria._id = slot._id;
   }
 
   if (req.query.parkingAreatId) {
     const area = await ParkingArea.findById(req.query.parkingAreatId);
-    if (!area) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { message: PARK_AREA_SLOT_CONSTANTS.AREA_NOT_FOUND } });
+    if (!area) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: PARK_AREA_SLOT_CONSTANTS.AREA_NOT_FOUND } });
 
     criteria.parkingAreatId = area._id;
   }
 
   if (req.query.vehicleId) {
     const vehicle = await Vehicle.findById(req.query.vehicleId);
-    if (!vehicle) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { message: PARK_AREA_SLOT_CONSTANTS.VEHICLE_NOT_FOUND } });
+    if (!vehicle) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: PARK_AREA_SLOT_CONSTANTS.VEHICLE_NOT_FOUND } });
 
     criteria.vehicleId = vehicle._id;
   }
 
   if (req.query.bookedBy) {
     const user = await User.findById(req.query.bookedBy);
-    if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { message: PARK_AREA_SLOT_CONSTANTS.VEHICLE_NOT_FOUND } });
+    if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: PARK_AREA_SLOT_CONSTANTS.VEHICLE_NOT_FOUND } });
 
     criteria.bookedBy = user._id;
   }

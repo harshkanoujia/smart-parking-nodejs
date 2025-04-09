@@ -41,7 +41,7 @@ router.get('/profile', identityManager(['admin']), async (req, res) => {
 router.put('/manager/:id', identityManager(["admin"]), async (req, res) => {
 
   let manager = await Manager.findById(req.params.id);
-  if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: MANAGER_CONSTANTS.INVALID_ID } });
+  if (!manager) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
 
   manager.status = req.body.status;
   manager.save();
@@ -58,7 +58,7 @@ router.put('/manager/:id', identityManager(["admin"]), async (req, res) => {
 router.put('/user/:id', identityManager(["admin"]), async (req, res) => {
 
   let user = await User.findById(req.params.id);
-  if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { msg: USER_CONSTANTS.INVALID_USER } });
+  if (!user) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: USER_CONSTANTS.INVALID_USER } });
 
   user.status = req.body.status;
   user.save();

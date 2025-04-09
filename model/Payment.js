@@ -5,8 +5,8 @@ const paymentSchema = new mongoose.Schema({
   paymentIntentId: { type: String, default: "" },
   customerId: { type: String, default: "" },
 
-  amount: { type: Number, default: 0 },
-  amountInPaise: { type: Boolean, default: false },
+  amountInRupee: { type: Number, default: 0 },
+  amountInPaise: { type: Number, default: 0 },
   currency: { type: String, default: "inr" },
   status: { type: String, enum: ['paid', 'failed', 'pending'], default: "pending" },
   
@@ -27,30 +27,4 @@ const paymentSchema = new mongoose.Schema({
 const Payment = mongoose.model('Payment', paymentSchema);
 
 
-function calcAmount(hours, days, ammountPerhour) {
-
-  let totalAmount;
-
-  if (hours && days) {
-    totalAmount = ((days * 24) + hours) * ammountPerhour;
-  } else if (hours && days === null) {
-    totalAmount = hours * ammountPerhour;
-  } else if (hours === null && days) {
-    totalAmount = days * 24 * ammountPerhour;
-  }
-
-  return totalAmount;
-}
-
-
 module.exports.Payment = Payment;
-module.exports.calcAmount = calcAmount;
-
-
-// if (req.body.hours && req.body.days) {
-//   totalAmount = ((req.body.days * 24) + req.body.hours) * ammountPerhour;
-// } else if (req.body.hours && req.body.days === "" || req.body.hours && req.body.days === null ) {
-//   totalAmount = req.body.hours * ammountPerhour;
-// } else if (req.body.hours === "" && req.body.days || req.body.hours === null && req.body.days ) {
-//   totalAmount = req.body.days * 24 * ammountPerhour;
-// }

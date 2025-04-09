@@ -13,6 +13,31 @@
       padding: 0;
     }
 
+    .navbar {
+      background-color: #1e293b;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar h2 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .navbar a {
+      color: #cbd5e1;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .navbar a:hover {
+      color: #ffffff;
+    }
+
     .container {
       max-width: 600px;
       margin: 50px auto;
@@ -123,10 +148,38 @@
       text-align: center;
       margin-top: 10px;
     }
+
+    .footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    @media (max-width: 600px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .navbar a {
+        margin: 0.5rem 0 0 0;
+      }
+    }
   </style>
 </head>
 
 <body>
+
+  <div class="navbar">
+    <h2><a href="/dashboard"></i> 🚗 Parking Dashboard</a></h2>
+    <div>
+      <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+      <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
   <div class="container">
     <h2>Book Your Parking Spot Now</h2>
     <form id="bookingForm">
@@ -271,19 +324,46 @@
 
         const result = await res.json();
 
-        if (res.status !== 200) {
-          errorMsg.textContent = result.error || result.message || 'Booking failed.';
+        if (res.status !== 201) {
+          errorMsg.textContent = result.data.msg || result.message || 'Booking failed.';
           return;
         }
 
         alert('✅ Booking & Payment Successful!');
-        window.location.href = '/home';
+        window.location.href = '/dashboard';
       } catch (err) {
         console.error(err);
         errorMsg.textContent = 'Something went wrong.';
       }
     });
+
+
+    function logoutUser() {
+      const token = localStorage.getItem('authToken');
+
+      fetch('/api/auth/user/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': token
+        }
+      })
+        .then(res => {
+          localStorage.removeItem('authToken'); // Token clear
+          localStorage.removeItem('user');      // Optional
+          window.location.href = '/';           // Redirect
+        })
+        .catch(err => {
+          console.error("Logout error:", err);
+          alert("Something went wrong.");
+        });
+    }
+
   </script>
+
+  <div class="footer">
+    <p>&copy; <%= new Date().getFullYear() %> Parking Management Software | All Rights Reserved</p>
+  </div>
+
 </body>
 
 </html>

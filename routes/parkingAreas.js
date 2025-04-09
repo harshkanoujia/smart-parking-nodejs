@@ -9,11 +9,55 @@ const { ParkingArea, validateParkingArea } = require('../model/ParkingArea');
 
 
 
+// get area 
+router.get('/', identityManager(['admin', 'manager', 'user']), async (req, res) => {
+
+  let criteria = {};
+
+  if (req.jwtData.role === "manager") {
+    criteria.ownerId = req.userData._id;
+  }
+
+  if (req.query.id) {
+    const area = await ParkingArea.findById(req.query.id);
+    if (!area) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: PARK_AREA_CONSTANTS.NOT_FOUND } });
+
+    criteria._id = area._id;
+  }
+
+  if (req.query.status) criteria.status = req.query.status;
+
+  const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
+  const limit = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
+
+
+  const area = await ParkingArea.aggregate([
+    {
+      $match: criteria
+    },
+    {
+      $skip: skipVal
+    },
+    {
+      $limit: limit
+    },
+    {
+      $project: {
+        _id: 0,
+        insertDate: 0,
+        lastUpdatedDate: 0
+      }
+    }
+  ]);
+
+  res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Success', data: { area: area } });
+});
+
 // create parking Area
 router.post('/', identityManager(['admin', 'manager']), async (req, res) => {
 
   const { error } = validateParkingArea(req.body);
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
 
   const area = new ParkingArea({
@@ -67,50 +111,6 @@ router.post('/', identityManager(['admin', 'manager']), async (req, res) => {
     message: 'Success',
     data: { msg: PARK_AREA_CONSTANTS.AREA_CREATED_SUCCESS, area: response }
   });
-});
-
-// get area 
-router.get('/', identityManager(['admin', 'manager', 'user']), async (req, res) => {
-
-  let criteria = {};
-
-  if (req.jwtData.role === "manager") {
-    criteria.ownerId = req.userData._id;
-  }
-
-  if (req.query.id) {
-    const area = await ParkingArea.findById(req.query.id);
-    if (!area) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", error: { message: PARK_AREA_CONSTANTS.NOT_FOUND } });
-
-    criteria._id = area._id;
-  }
-
-  if (req.query.status) criteria.status = req.query.status;
-
-  const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
-  const limit = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
-
-
-  const area = await ParkingArea.aggregate([
-    {
-      $match: criteria
-    },
-    {
-      $skip: skipVal
-    },
-    {
-      $limit: limit
-    },
-    {
-      $project: {
-        _id: 0,
-        insertDate: 0,
-        lastUpdatedDate: 0
-      }
-    }
-  ]);
-
-  res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Success', data: { area: area } });
 });
 
 

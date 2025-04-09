@@ -86,6 +86,8 @@ const BOOKING_CONSTANTS = {
   CANCEL_SUBMIT_SUCCESS: "Booking Cancelled Successfully.",
   SUBMIT_SUCCESS: "Booking Created Successfully.",
   INVALID_VEHICLE_USER: "Your Vehicle is not allowed in this Parking. !Choose Different area.",
+  INVALID_AMOUNT: "Invalid Amount !. Amount must be greater then 50 Ruppee.",
+  INVALID_TOTOL_AMOUNT: "Error while calculating the total amount !. Try again later."
 };
 
 const PARK_AREA_CONSTANTS = {
@@ -99,6 +101,12 @@ const PARK_AREA_SLOT_CONSTANTS = {
   NOT_FOUND: "Slot not found !"
 }
 
+const VEHICLE_CONSTANTS = {
+  NOT_FOUND: "Vehicle not found !",
+  NUMBER_PLATE_EXIST: "Number plate already exist! Check again before register new vehicle.",
+  NEW_VEHCILE: "Successfully register new vehicle"
+}
+
 module.exports = {
   ADMIN_CONSTANTS,
   MANAGER_CONSTANTS,
@@ -106,5 +114,6 @@ module.exports = {
   AUTH_CONSTANTS,
   BOOKING_CONSTANTS,
   PARK_AREA_CONSTANTS,
-  PARK_AREA_SLOT_CONSTANTS
+  PARK_AREA_SLOT_CONSTANTS,
+  VEHICLE_CONSTANTS
 }

@@ -1,45 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
   <title>Signup</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 40px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    input,
+    button,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #218838;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
-  <h2>Sign Up</h2>
-  <form action="/api/users" method="POST">
-    <input type="text" name="fullName" placeholder="fullName" required>
-    <input type="text" name="email" placeholder="Email" required>
-    <input type="text" name="mobile" placeholder="Mobile" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <input type="text" name="gender" placeholder="Gender" required>
-    <input type="text" name="profilePic" placeholder="ProfilePic">
-    <button type="submit">Sign Up</button>
-  </form>
-  <a href="/login">Already have an account? Login</a>
+  <div class="container">
+    <h2>Sign Up</h2>
+    <form id="signupForm">
+      <input type="text" name="fullName" placeholder="Full Name" required />
+      <input type="email" name="email" placeholder="Email (optional)" />
+      <input type="text" name="mobile" placeholder="Mobile" required />
+      <input type="password" name="password" placeholder="Password" required />
+
+      <select name="gender" required>
+        <option value="">Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+
+      <input type="text" name="profilePic" placeholder="Profile Pic URL (optional)" />
+      <input type="text" name="deviceToken" placeholder="Device Token (optional)" />
+
+      <input type="text" name="city" placeholder="City" required />
+      <input type="text" name="state" placeholder="State" required />
+      <input type="text" name="country" placeholder="Country" required />
+
+      <!-- Optional location (latitude, longitude) -->
+      <input type="text" name="location[lat]" placeholder="Latitude (optional)" />
+      <input type="text" name="location[lng]" placeholder="Longitude (optional)" />
+
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <p class="error" id="errorText"></p>
+    <p style="text-align:center;">Already have an account? <a href="/login">Login</a></p>
+  </div>
 
   <script>
     document.getElementById("signupForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const formData = new FormData(this);
-      const body = new URLSearchParams(formData);
+      const formObject = Object.fromEntries(formData.entries());
 
-      const res = await fetch("/api/auth/user/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
+      // Convert nested location into object
+      const location = {};
+      if (formObject['location[lat]']) location.lat = parseFloat(formObject['location[lat]']);
+      if (formObject['location[lng]']) location.lng = parseFloat(formObject['location[lng]']);
+      if (Object.keys(location).length) formObject.location = location;
+      delete formObject['location[lat]'];
+      delete formObject['location[lng]'];
 
-      const data = await res.json();
-      if (data.success) {
-        window.location.href = "/booking";
-      } else {
-        alert(data.message || "Signup failed");
+      try {
+        const res = await fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formObject),
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          alert("✅ Signup Successful!");
+          window.location.href = "/dashboard";
+        } else {
+          document.getElementById("errorText").textContent = result.message || "Signup failed.";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("errorText").textContent = "Something went wrong. Please try again.";
       }
     });
   </script>
-
 </body>
 
 </html>

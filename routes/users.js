@@ -12,19 +12,19 @@ const { User, validateUserRegister, validateUserUpdate } = require('../model/Use
 
 
 
-// users profile
+// user profile
 router.get('/profile', identityManager(['manager', 'admin', 'user']), async (req, res) => {
 
   let criteria = {};
 
-  if (req.query.id) {
-    if (!mongoose.Types.ObjectId.isValid(req.query.id))
+  if (req.query.otherUserId) {
+    if (!mongoose.Types.ObjectId.isValid(req.query.otherUserId))
       return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
 
-    criteria._id = new mongoose.Types.ObjectId(req.query.id);
+    criteria._id = new mongoose.Types.ObjectId(req.query.otherUserId);
 
   } else if (req.jwtData.role === "user") {
-    criteria._id = req.userData._id
+    criteria._id = new mongoose.Types.ObjectId(req.userData._id);
 
   } else {
     criteria = {};
@@ -35,7 +35,7 @@ router.get('/profile', identityManager(['manager', 'admin', 'user']), async (req
 
 
   const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
-  const limitVal = isNaN(parseInt(req.query.limit)) ? 1000 : parseInt(req.query.limit);
+  const limitVal = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
 
   const user = await User.aggregate([
     {
@@ -61,6 +61,7 @@ router.get('/profile', identityManager(['manager', 'admin', 'user']), async (req
               accessToken: 1,
               deviceToken: 1,
               location: 1,
+              vehicles: 1,
               city: 1,
               state: 1,
               country: 1,
@@ -128,8 +129,8 @@ router.post('/', async (req, res) => {
   );
 
   if (req.body.location) {
-    area.location.coordinates[0] = req.body.location.lng;
-    area.location.coordinates[1] = req.body.location.lat;
+    user.location.coordinates[0] = req.body.location.lng;
+    user.location.coordinates[1] = req.body.location.lat;
   }
 
   user.email = email;
@@ -149,7 +150,7 @@ router.post('/', async (req, res) => {
   console.log("\nCUSTOMER On Stripe", customer);
 
   user.stripeCustomerId = customer.data.id;
-
+  user.isOnline = true;
   await user.save();
 
   const response = _.pick(user, [

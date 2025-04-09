@@ -3,15 +3,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const { Payment, calcAmount } = require('../model/Payment');
+const { User } = require('../model/User');
+const { Payment } = require('../model/Payment');
 const { Vehicle } = require('../model/Vehicle');
 const { ParkingArea } = require('../model/ParkingArea');
 const { ParkingSlot } = require('../model/ParkingSlot');
 const { identityManager } = require('../middleware/auth');
+const { calcTotalAmount } = require('../services/commonFunctions');
 const { createPaymentIntent } = require('../services/stripeFunctions');
 const { Booking, validateBookingCreate } = require('../model/Booking');
 const { PARK_AREA_CONSTANTS, BOOKING_CONSTANTS } = require('../config/constant');
-const { User } = require('../model/User');
 
 
 
@@ -19,24 +20,22 @@ const { User } = require('../model/User');
 router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res) => {
 
   const { error } = validateBookingCreate(req.body);
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
   const area = await ParkingArea.findById(req.body.parkingAreaId);
-  if (!area) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: PARK_AREA_CONSTANTS.NOT_FOUND });
+  if (!area) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: PARK_AREA_CONSTANTS.NOT_FOUND } });
 
   let remainingSlot = area.remainingSlots;
 
   if (remainingSlot === 0 || remainingSlot === null) {
-    return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: BOOKING_CONSTANTS.SLOT_NOT_AVALIABLE })
+    return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: BOOKING_CONSTANTS.SLOT_NOT_AVALIABLE } })
   }
 
   const slot = await ParkingSlot.findOne({ parkingAreaId: area._id, isBooked: false, status: 'free' });
-  if (!slot) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: BOOKING_CONSTANTS.SLOT_NOT_AVALIABLE });
+  if (!slot) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: BOOKING_CONSTANTS.SLOT_NOT_AVALIABLE } });
 
-  const vehicle = await Vehicle.findOne({ ownerId: req.userData._id, vehicleType: area.allowedVehicle });   // status: 'allowed' 
-  if (!vehicle || vehicle.length === 0) {
-    return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: BOOKING_CONSTANTS.INVALID_VEHICLE_USER });
-  }
+  const vehicle = await Vehicle.findOne({ ownerId: req.userData._id, vehicleType: area['allowedVehicle'] });   // status: 'allowed' 
+  if (!vehicle) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: BOOKING_CONSTANTS.INVALID_VEHICLE_USER } });
 
   const booking = new Booking({
     userId: req.reqUserId,
@@ -46,8 +45,13 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
     hours: req.body.hours * 60 * 60
   });
 
+  let hours = req.body.hours !== undefined && req.body.hours !== 0 ? req.body.hours : null
+  let days = req.body.days !== undefined && req.body.days !== 0 ? req.body.days : null
+
   // total amount 
-  const totalAmount = calcAmount(req.body.hours, req.body.days, area.pricingPerHour);
+  const totalAmount = calcTotalAmount(hours, days, area.pricingPerHour);
+  if (!totalAmount) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: BOOKING_CONSTANTS.INVALID_TOTOL_AMOUNT } });
+  if (totalAmount <= 50) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: BOOKING_CONSTANTS.INVALID_AMOUNT } });
 
   let currency = "Inr";
   let amount = totalAmount * 100;               // convert ruppee to paise 
@@ -57,7 +61,7 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
 
   // payment via stripe
   const payment = await createPaymentIntent(customerId, paymentMethod, amount, currency, customerEmail);
-  if (payment.statusCode != 200) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { message: payment.data } })
+  if (payment.statusCode != 200) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: payment.data } })
   console.log("Stripe Payment", payment)
 
 
@@ -88,8 +92,8 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
     bookingId: booking._id,
     paymentIntentId: payment.data.payment_method,
     customerId: payment.data.customer,
-    amount: payment.data.amount,
-    amountInPaise: true,
+    amountInRupee: totalAmount,
+    amountInPaise: payment.data.amount,
     currency: payment.data.currency,
     status: 'paid'
   })

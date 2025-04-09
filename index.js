@@ -12,9 +12,10 @@ app.use(express.static("public"));
 app.get("/", (req, res) => res.render("home"));
 app.get("/signup", (req, res) => res.render("signup"));
 app.get("/login", (req, res) => res.render("login"));
-app.get('/booking', (req, res) => res.render("booking", {
-  stripePublicKey: config.get("STRIPE_PUBLISHABLE_KEY")
-}));
+app.get('/booking', (req, res) => res.render("booking", { stripePublicKey: config.get("STRIPE_PUBLISHABLE_KEY") }));
+app.get('/vehicle', (req, res) => res.render('vehicle'));
+app.get('/dashboard', (req, res) => res.render('dashboard') );
+app.get('/profile', (req, res) => res.render('profile') );
 
 
 require('./startup/config')();          // environement check 
@@ -27,7 +28,7 @@ require('./startup/prod')(app);         // production level
 require('./startup/logger');            // apiReq save 
 
 // require('./services/stripeFunctions')
-Seed(); 
+Seed();
 
 
 //Start Server

@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
 
   // validate req.body
   const { error } = validate(req.body);
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
   const email = req.body.email.toLowerCase().trim();
   const password = req.body.password.trim();

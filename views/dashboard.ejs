@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+    }
+
+    .navbar {
+      background-color: #1e293b;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar h2 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .navbar a {
+      color: #cbd5e1;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .navbar a:hover {
+      color: #ffffff;
+    }
+
+    .container {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    h3 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      color: #1e293b;
+    }
+
+    p {
+      color: #64748b;
+      margin-bottom: 2rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card i {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #0ea5e9;
+    }
+
+    .card a {
+      text-decoration: none;
+      font-size: 1.1rem;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .card a:hover {
+      color: #0ea5e9;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    @media (max-width: 600px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .navbar a {
+        margin: 0.5rem 0 0 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <h2><a href="/dashboard"></i> 🚗 Parking Dashboard</a></h2>
+    <div>
+      <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+      <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h3 id="userName">Welcome, User 👋</h3>
+
+
+    <p>Select an action below:</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <i class="fas fa-car"></i>
+        <a href="/vehicle">Add Vehicle</a>
+      </div>
+
+      <div class="card">
+        <i class="fas fa-calendar-check"></i>
+        <a href="/booking">Make a Booking</a>
+      </div>
+
+      <div class="card">
+        <i class="fas fa-list"></i>
+        <a href="/bookings">My Bookings</a>
+      </div>
+
+      <div class="card">
+        <i class="fas fa-user-cog"></i>
+        <a href="/profile">Edit Profile</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; <%= new Date().getFullYear() %> Parking Management Software | All Rights Reserved</p>
+  </div>
+
+  <script>
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      document.getElementById("userName").innerText = `Welcome, ${user.fullName} 👋`;
+    }
+
+    function logoutUser() {
+      const token = localStorage.getItem('authToken');
+
+      fetch('/api/auth/user/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': token
+        }
+      })
+        .then(res => {
+          localStorage.removeItem('authToken'); // Token clear
+          localStorage.removeItem('user');      // Optional
+          window.location.href = '/';           // Redirect
+        })
+        .catch(err => {
+          console.error("Logout error:", err);
+          alert("Something went wrong.");
+        });
+    }
+
+  </script>
+</body>
+
+</html>

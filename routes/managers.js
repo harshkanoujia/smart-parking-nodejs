@@ -57,12 +57,12 @@ router.get('/profile', identityManager(['manager', 'admin']), async (req, res) =
   });
 });
 
-// manager create                                                       
+// manager signup                                                       
 router.post('/', async (req, res) => {
 
   // validate req.body
   const { error } = validateManagerRegister(req.body);
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', err: error.details[0].message });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
   let criteria = {};
   let email = "";
@@ -123,10 +123,10 @@ router.post('/', async (req, res) => {
   ]);
 
   return res.header("Authorization", token)
-    .status(200)
+    .status(201)
     .json({
       apiId: req.apiId,
-      statusCode: 200,
+      statusCode: 201,
       message: "Success",
       data: { msg: MANAGER_CONSTANTS.CREATED_SUCCESS, manager: response }
     });
@@ -136,7 +136,7 @@ router.post('/', async (req, res) => {
 router.put('/:id?', identityManager(['admin', 'manager']), async (req, res) => {
   // req resource
   const { error } = validateManagerUpdate(req.body)
-  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', error: error.details[0].message });
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
   const criteria = {};
   if (req.jwtData.role === "manager") {
@@ -150,7 +150,7 @@ router.put('/:id?', identityManager(['admin', 'manager']), async (req, res) => {
 
   // find exist or not
   let manager = await Manager.findOne(criteria);
-  if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+  if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
 
   const { fullName, email, mobile, gender, profilePic, deviceToken } = req.body;
 
@@ -201,11 +201,11 @@ router.put('/:id?', identityManager(['admin', 'manager']), async (req, res) => {
 router.delete('/:id', identityManager(['admin', 'manager']), async (req, res) => {
 
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+    return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
   }
 
   const manager = await Manager.findOne({ _id: req.params.id });
-  if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: MANAGER_CONSTANTS.INVALID_ID });
+  if (!manager) return res.status(400).send({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: MANAGER_CONSTANTS.INVALID_ID } });
 
   manager.isDeleted = true;
   manager.status = "deleted";
@@ -215,7 +215,7 @@ router.delete('/:id', identityManager(['admin', 'manager']), async (req, res) =>
 
   manager.save();
 
-  return res.status(200).send({ apiId: req.apiId, statusCode: 200, message: "Success", data: MANAGER_CONSTANTS.DELETE_SUCCESS });
+  return res.status(200).send({ apiId: req.apiId, statusCode: 200, message: "Success", data: { msg: MANAGER_CONSTANTS.DELETE_SUCCESS } });
 });
 
 
