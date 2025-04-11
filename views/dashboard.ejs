@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
@@ -24,21 +24,24 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
     }
 
-    .navbar h2 {
+    .navbar h2 a {
       font-size: 1.5rem;
-      margin: 0;
+      color: #fff;
+      text-decoration: none;
     }
 
-    .navbar a {
+    .navbar div a {
       color: #cbd5e1;
       margin-left: 1.5rem;
       text-decoration: none;
       font-weight: 500;
+      transition: color 0.3s ease;
     }
 
-    .navbar a:hover {
+    .navbar div a:hover {
       color: #ffffff;
     }
 
@@ -90,6 +93,9 @@
       font-size: 1.1rem;
       color: #1e293b;
       font-weight: 600;
+      display: inline-block;
+      margin-top: 0.5rem;
+      transition: color 0.2s;
     }
 
     .card a:hover {
@@ -110,8 +116,8 @@
         align-items: flex-start;
       }
 
-      .navbar a {
-        margin: 0.5rem 0 0 0;
+      .navbar div a {
+        margin: 0.5rem 1rem 0 0;
       }
     }
   </style>
@@ -120,8 +126,9 @@
 <body>
 
   <div class="navbar">
-    <h2><a href="/dashboard"></i> 🚗 Parking Dashboard</a></h2>
+    <h2><a href="/dashboard">🚗 Parking Dashboard</a></h2>
     <div>
+      <a href="/subscribe"><i class="fas fa-crown"></i> Premium</a>
       <a href="/profile"><i class="fas fa-user"></i> Profile</a>
       <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
@@ -129,7 +136,6 @@
 
   <div class="container">
     <h3 id="userName">Welcome, User 👋</h3>
-
 
     <p>Select an action below:</p>
 
@@ -153,6 +159,11 @@
         <i class="fas fa-user-cog"></i>
         <a href="/profile">Edit Profile</a>
       </div>
+
+      <div class="card">
+        <i class="fas fa-crown" style="color: gold;"></i>
+        <a href="/subscribe">Premium</a>
+      </div>
     </div>
   </div>
 
@@ -169,6 +180,12 @@
 
     function logoutUser() {
       const token = localStorage.getItem('authToken');
+      if (!token) {
+        alert('Please log in first.');
+        return window.location.href = '/login';
+      }
+
+      if (!confirm("Are you sure you want to log out?")) return;
 
       fetch('/api/auth/user/logout', {
         method: 'POST',
@@ -177,17 +194,17 @@
         }
       })
         .then(res => {
-          localStorage.removeItem('authToken'); // Token clear
-          localStorage.removeItem('user');      // Optional
-          window.location.href = '/';           // Redirect
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/';
         })
         .catch(err => {
           console.error("Logout error:", err);
           alert("Something went wrong.");
         });
     }
-
   </script>
+
 </body>
 
 </html>

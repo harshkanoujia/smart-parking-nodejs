@@ -101,9 +101,10 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
   await payments.save();
 
   booking.isPaid = true;
-  booking.slotNo = slot.slotNo;
   booking.status = "booked";
-  booking.totalAmount = totalAmount;
+  booking.slotNo = slot.slotNo;
+  booking.paymentId = payments._id;
+  booking.transactionStatus = "completed";
 
   await booking.save();
 
@@ -113,6 +114,8 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
     'userId',
     'vehicleId',
     'parkingAreaId',
+    'paymentId',
+    'transactionStatus',
     'days',
     'hours',
     'isPaid',

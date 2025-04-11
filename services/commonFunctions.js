@@ -18,5 +18,4 @@ function calcTotalAmount(hours, days, ammountPerhour) {
 }
 
 
-console.log(calcTotalAmount(6, 2, 10))
 module.exports.calcTotalAmount = calcTotalAmount;

@@ -1,7 +1,9 @@
 {
-    "environment": "devApp_environment",
-    "port": "parkingManagementSoftware_port",
-    "dbMlab": "devApp_dbMlab_string",
-    "jwtPrivateKey": "devApp_jwtPrivateKey",
-    "bcryptSalt": "devApp_bcryptSalt"
+	"environment": "devApp_environment",
+	"port": "parkingManagementSoftware_port",
+	"dbMlab": "devApp_dbMlab_string",
+	"jwtPrivateKey": "devApp_jwtPrivateKey",
+	"bcryptSalt": "devApp_bcryptSalt",
+	"STRIPE_SECRET_KEY": "your_stripe_sk_test",
+	"STRIPE_PUBLISHABLE_KEY": "your_stripe_pk_test"
 }

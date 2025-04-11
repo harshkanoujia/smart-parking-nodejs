@@ -7,18 +7,20 @@ const { Seed } = require("./startup/seed");
 
 
 app.set("view engine", "ejs");
-app.use(express.static("public"));
+// app.use(express.static("public"));
 
 
 // ejs files
 app.get("/", (req, res) => res.render("home"));
 app.get("/signup", (req, res) => res.render("signup"));
 app.get("/login", (req, res) => res.render("login"));
-app.get('/booking', (req, res) => res.render("booking", { stripePublicKey: config.get("STRIPE_PUBLISHABLE_KEY") }));
+app.get('/booking', (req, res) => res.render("booking", { STRIPE_PUBLIC_KEY: config.get("STRIPE_PUBLISHABLE_KEY") }));
 app.get('/vehicle', (req, res) => res.render('vehicle'));
-app.get('/dashboard', (req, res) => res.render('dashboard') );
-app.get('/profile', (req, res) => res.render('profile') );
+app.get('/dashboard', (req, res) => res.render('dashboard'));
+app.get('/profile', (req, res) => res.render('profile'));
+app.get("/subscribe", (req, res) => { let currentPlan = "free"; res.render("subscription", { currentPlan, STRIPE_PUBLIC_KEY: config.get("STRIPE_PUBLISHABLE_KEY") }) });
 
+// app.get("/subscribe", (req, res) => res.render("subscription", { STRIPE_PUBLIC_KEY: config.get("STRIPE_PUBLISHABLE_KEY") }));
 
 
 require('./startup/config')();          // environement check 

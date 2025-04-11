@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Book Parking Spot</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
     body {
@@ -175,6 +176,7 @@
   <div class="navbar">
     <h2><a href="/dashboard"></i> 🚗 Parking Dashboard</a></h2>
     <div>
+      <a href="/subscribe"><i class="fas fa-crown"></i> Premium</a>
       <a href="/profile"><i class="fas fa-user"></i> Profile</a>
       <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
@@ -228,6 +230,10 @@
     const amountPerHour = document.getElementById('amountPerHour');
 
     const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Please log in first.');
+      return window.location.href = '/login';
+    }
 
     function debounce(func, delay) {
       let timeout;
@@ -278,7 +284,7 @@
     parkingAreaIdInput.addEventListener('input', debouncedCalculateAmount);
 
     // Stripe and booking logic
-    const stripe = Stripe('<%= stripePublicKey %>');
+    const stripe = Stripe('<%= STRIPE_PUBLIC_KEY %>');
     const elements = stripe.elements();
     const cardElement = elements.create('card');
     cardElement.mount('#card-element');
@@ -289,11 +295,6 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorMsg.textContent = '';
-
-      if (!token) {
-        alert('Please log in first.');
-        return window.location.href = '/login';
-      }
 
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());

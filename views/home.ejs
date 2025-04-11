@@ -1,13 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>Parking System</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parking Management Software</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    header {
+      background-color: #004d99;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    main {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-top: 20px;
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: #555;
+    }
+
+    .btn-container {
+      margin-top: 30px;
+    }
+
+    .btn {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      color: white;
+      background-color: #0073e6;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #005bb5;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9rem;
+      color: #888;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Welcome to Parking System</h1>
-  <a href="/signup">Sign Up</a> | <a href="/login">Login</a>
+  <header>
+    <h1>Smart Parking Management</h1>
+  </header>
+
+  <main>
+    <h1>Welcome to Our Parking System</h1>
+    <p>Manage your parking easily and efficiently with our platform.</p>
+
+    <div class="btn-container">
+      <a href="/signup" class="btn">Sign Up</a>
+      <a href="/login" class="btn">Login</a>
+    </div>
+  </main>
+
+  <footer>
+    &copy; <%= new Date().getFullYear() %> Parking Management Software. All rights reserved.
+  </footer>
 </body>
 
 </html>

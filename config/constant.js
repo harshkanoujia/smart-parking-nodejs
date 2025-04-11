@@ -107,6 +107,15 @@ const VEHICLE_CONSTANTS = {
   NEW_VEHCILE: "Successfully register new vehicle"
 }
 
+const SUBSCRIPTION_CONSTANTS = {
+  PRODUCT_CREATED: "Plan has Succesfully Created on Stripe.",
+  INVALID_AMOUNT: "Invalid Amount !. Amount must be valid and in Ruppee.",
+  STRIPE_ID_NOT_FOUND: "You are not register on stripe. Contact with Admin.",
+  SUBSCRIBE_SUCCUSS: "You are successfully subscribe Premium feature. It will activated in 24 hours.",
+  PLAN_EXIST: "Plan must be unique for every product. This plan already exist."
+}
+
+
 module.exports = {
   ADMIN_CONSTANTS,
   MANAGER_CONSTANTS,
@@ -115,5 +124,6 @@ module.exports = {
   BOOKING_CONSTANTS,
   PARK_AREA_CONSTANTS,
   PARK_AREA_SLOT_CONSTANTS,
-  VEHICLE_CONSTANTS
+  VEHICLE_CONSTANTS,
+  SUBSCRIPTION_CONSTANTS
 }

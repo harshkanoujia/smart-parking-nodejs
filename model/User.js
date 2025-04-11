@@ -35,6 +35,18 @@ const userSchema = new mongoose.Schema({
 
   vehicles: { type: [String] },
 
+  isPremium: { type: Boolean, default: false },
+  subscriptionStatus: { type: String, enum: ['free', 'premium'], default: 'free' },
+
+  subscription: {
+    planId: String,                     // Stripe Price ID
+    subscriptionId: String,             // Stripe Subscription ID
+    stripeStatus: { type: String, enum: ['incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'unpaid', 'canceled'], default: 'incomplete' },
+    currentPeriodEnd: Date,             // End date of current billing cycle
+    startDate: Date,
+    endDate: Date
+  },
+  
   insertDate: {
     type: Number,
     default: () => {

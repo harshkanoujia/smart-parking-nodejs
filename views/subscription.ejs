@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Subscribe to a Plan</title>
+  <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(120deg, #f7f8fc, #e0eafc);
+    }
+
+    .navbar {
+      background-color: #1e293b;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar h2 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .navbar a {
+      color: #cbd5e1;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .navbar a:hover {
+      color: #ffffff;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 60px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 50px;
+      background: linear-gradient(to right, #4A90E2, #9013FE);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .plans {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .plan-card {
+      background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(5px);
+      padding: 35px;
+      border-radius: 20px;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 400px;
+      min-height: 460px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .plan-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15);
+    }
+
+    .plan-title {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #4A90E2;
+    }
+
+    .plan-price {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 20px;
+    }
+
+    .plan-desc {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 30px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .plan-desc ul {
+      padding-left: 20px;
+    }
+
+    .plan-desc li {
+      margin-bottom: 8px;
+    }
+
+    .plan-card form button,
+    .plan-card button {
+      background: linear-gradient(135deg, #ff6a00, #ee0979);
+      color: white;
+      padding: 14px 0;
+      width: 100%;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(238, 9, 121, 0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .plan-card form button:hover,
+    .plan-card button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 10px 20px rgba(238, 9, 121, 0.4);
+    }
+
+    /* Only affect disabled buttons that are NOT current-plan */
+    .plan-card button:disabled:not(.current-plan) {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .plan-card button.current-plan {
+      background: linear-gradient(to right, #9ca3af, #6b7280) !important;
+      color: white !important;
+      font-weight: 600;
+      padding: 14px 0;
+      width: 100%;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: not-allowed;
+      box-shadow: none !important;
+    }
+
+    form {
+      margin-top: auto;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    @media (max-width: 600px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .navbar a {
+        margin: 0.5rem 0 0 0;
+      }
+
+      .plans {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <h2><a href="/dashboard">🚗 Parking Dashboard</a></h2>
+    <div>
+      <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+      <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>Choose Your Plan</h1>
+    <div class="plans">
+
+      <!-- Free Plan -->
+      <div class="plan-card">
+        <div>
+          <h2 class="plan-title">Free Plan</h2>
+          <div class="plan-price">₹ 0.00 / month</div>
+          <div class="plan-desc">
+            <ul>
+              <li>✔️ 2 bookings per month</li>
+              <li>✔️ Basic slot access</li>
+              <li>❌ Priority support</li>
+              <li>❌ Early access features</li>
+            </ul>
+          </div>
+        </div>
+        <% if (currentPlan==='free' ) { %>
+          <button class="current-plan" disabled>Current Plan</button>
+          <% } else { %>
+            <form action="/switch-to-free" method="POST">
+              <button type="submit">Switch to Free</button>
+            </form>
+            <% } %>
+      </div>
+
+      <!-- Premium Plan -->
+      <div class="plan-card">
+        <div>
+          <h2 class="plan-title">Premium Plan</h2>
+          <div class="plan-price">₹ 1499.00 / month</div>
+          <div class="plan-desc">
+            <ul>
+              <li>✔️ Unlimited bookings</li>
+              <li>✔️ Priority slot access</li>
+              <li>✔️ Premium support</li>
+              <li>✔️ Early feature access</li>
+            </ul>
+          </div>
+        </div>
+        <% if (currentPlan==='premium' ) { %>
+          <button class="current-plan" disabled>Current Plan</button>
+          <% } else { %>
+            <form id="subscriptionForm">
+              <input type="hidden" name="priceId" />
+              <button type="submit">Subscribe Now</button>
+            </form>
+            <% } %>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; <%= new Date().getFullYear() %> Parking Management Software | All Rights Reserved</p>
+  </div>
+
+
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- <script>
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      const greeting = document.querySelector("h1");
+      if (greeting) {
+        greeting.innerText = `Choose Your Plan, ${user.fullName} 👋`;
+      }
+    }
+
+    const stripe = Stripe('<%= STRIPE_PUBLIC_KEY %>');
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const form = document.getElementById("subscriptionForm");
+
+      if (!form) return;
+
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        alert("Please log in first.");
+        return window.location.href = '/login';
+      }
+
+      // Step 1: Get priceId from backend
+      try {
+        const res = await fetch("/api/subscription/premium-priceId?plan=premium", {
+          method: "GET",
+          headers: {
+            Authorization: token
+          }
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.priceId) {
+          alert("Could not get price ID.");
+          return;
+        }
+
+        // Step 2: Set hidden field
+        const hiddenField = document.querySelector("input[name='stripePriceId']");
+        if (hiddenField) hiddenField.value = data.stripePriceId;
+      } catch (err) {
+        console.error("Failed to fetch price ID:", err);
+        return alert("Something went wrong.");
+      }
+
+      // Step 3: Handle form submit
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const priceId = form.querySelector("input[name='stripePriceId']").value;
+
+        const res = await fetch("/api/subscription/premium", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+          },
+          body: JSON.stringify({ priceId })
+        });
+
+        const response = await res.json();
+
+        if (res.ok && response.data?.clientSecret) {
+          const result = await stripe.confirmCardPayment(response.data.clientSecret);
+          if (result.error) {
+            console.error("Payment error:", result.error);
+            alert("Payment failed: " + result.error.message);
+          } else {
+            alert("Subscription successful! 🎉");
+            window.location.href = "/dashboard";
+          }
+        } else {
+          alert(response.data?.msg || "Subscription failed");
+        }
+      });
+    });
+
+    function logoutUser() {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        alert('Please log in first.');
+        return window.location.href = '/login';
+      }
+
+      fetch('/api/auth/user/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': token
+        }
+      })
+        .then(res => {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/';
+        })
+        .catch(err => {
+          console.error("Logout error:", err);
+          alert("Something went wrong.");
+        });
+    }
+  </script> -->
+
+  <script>
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      const greeting = document.querySelector("h1");
+      if (greeting) {
+        greeting.innerText = `Choose Your Plan, ${user.fullName} 👋`;
+      }
+    }
+
+    const stripe = Stripe('<%= STRIPE_PUBLIC_KEY %>');
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const form = document.getElementById("subscriptionForm");
+
+      if (!form) return;
+
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        alert("Please log in first.");
+        return window.location.href = '/login';
+      }
+
+      // ✅ Step 1: Get priceId from backend
+      try {
+        const res = await fetch("/api/subscriptions/priceId?plan=premium", {
+          method: "GET",
+          headers: {
+            Authorization: token
+          }
+        });
+
+        const result = await res.json();
+
+        if (!res.ok || !result.data.priceId) {
+          alert("Could not get price ID.");
+          return;
+        }
+
+        // ✅ Step 2: Dynamically inject hidden field
+        let hiddenField = form.querySelector("input[name='priceId']");
+        if (!hiddenField) {
+          hiddenField = document.createElement("input");
+          hiddenField.type = "hidden";
+          hiddenField.name = "priceId";
+          form.appendChild(hiddenField);
+        }
+        hiddenField.value = result.data.priceId;
+
+      } catch (err) {
+        console.error("Failed to fetch price ID:", err);
+        return alert("Something went wrong.");
+      }
+
+      // ✅ Step 3: Handle form submit
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const priceId = form.querySelector("input[name='priceId']").value;
+
+        const res = await fetch("/api/subscriptions/premium", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+          },
+          body: JSON.stringify({ priceId })
+        });
+
+        const response = await res.json();
+
+        if (res.ok && response.data?.clientSecret) {
+          const result = await stripe.confirmCardPayment(response.data.clientSecret);
+          if (result.error) {
+            console.error("Payment error:", result.error);
+            alert("Payment failed: " + result.error.message);
+          } else {
+            alert("Subscription successful! 🎉");
+            window.location.href = "/dashboard";
+          }
+        } else {
+          alert(response.message || "Subscription failed");
+        }
+      });
+    });
+
+    function logoutUser() {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        alert('Please log in first.');
+        return window.location.href = '/login';
+      }
+
+      fetch('/api/auth/user/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': token
+        }
+      })
+        .then(res => {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/';
+        })
+        .catch(err => {
+          console.error("Logout error:", err);
+          alert("Something went wrong.");
+        });
+    }
+  </script>
+
+</body>
+
+</html>

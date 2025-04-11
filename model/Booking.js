@@ -11,10 +11,15 @@ const bookingSchema = new mongoose.Schema({
   days: { type: Number, default: null },
   hours: { type: Number, default: null },
 
-  totalAmount : { type: Number, default: 0 },
-  isPaid: { type: Boolean, default: false },
+  status: { type: String, enum: ["pending", "cancelled", "completed", "booked"], default: "pending" },
   
-  status: { type: String, enum: ['booked', 'complete', 'cancel'], default: null },
+  paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
+  isPaid: { type: Boolean, default: false },
+  transactionStatus: { type: String, enum: ["pending", "completed", "failure"], default: "pending" },
+  refundStatus: { type: String, enum: ["refundPending", "refunded", "noRefund", "failed"], default: "noRefund" },
+
+  cancellationTime: { type: Number, default: null },
+  canceledBy: { type: Number, default: null },
 
   insertDate: {
     type: Number,

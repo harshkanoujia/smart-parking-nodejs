@@ -1,21 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Parking Management</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #0073e6;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005bb5;
+    }
+
+    #message,
+    #error {
+      margin-top: 15px;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    #message {
+      color: green;
+    }
+
+    #error {
+      color: red;
+    }
+  </style>
 </head>
 
 <body>
-  <h2>Login</h2>
-  <form id="loginForm" action="/api/auth/user/login" method="POST">
-    <input type="text" name="email" placeholder="email">
-    <input type="text" name="mobile" placeholder="mobile">
-    <input type="password" name="password" placeholder="Password" required>
-    <button type="submit">Login</button>
-  </form>
+  <div class="container">
+    <h2>User Login</h2>
+    <form id="loginForm" action="/api/auth/user/login" method="POST">
+      <input type="text" name="email" placeholder="Email" />
+      <input type="text" name="mobile" placeholder="Mobile" />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
 
-  <div id="message"></div>
-  <div id="error"></div>
+    <div id="message"></div>
+    <div id="error"></div>
+  </div>
 
   <script>
     const form = document.getElementById('loginForm');
@@ -41,27 +112,21 @@
         });
 
         const result = await res.json();
-
         const token = res.headers.get('Authorization');
 
         if (result.statusCode === 200 && token) {
           const user = result.data.user;
 
-          // Save token and user to localStorage
           localStorage.setItem("authToken", token);
           localStorage.setItem("user", JSON.stringify(user));
 
-          messageBox.innerHTML = `<br>
-                      ✅ ${result.data.msg} <br>
-                      👤 Welcome, <strong>${user.fullName} </strong> <br>
-                      📧 ${user.email} `;
+          messageBox.innerHTML = `✅ ${result.data.msg}<br>👤 Welcome, <strong>${user.fullName}</strong><br>📧 ${user.email}`;
 
-          // Redirect to booking after 2s
           setTimeout(() => {
             window.location.href = '/dashboard';
           }, 2000);
         } else {
-          errorBox.innerText = result.message || 'Login failed.';
+          errorBox.innerText = result.data.msg || result.message || 'Login failed.';
         }
       } catch (err) {
         errorBox.innerText = 'Something went wrong.';
@@ -69,7 +134,6 @@
       }
     });
   </script>
-
 </body>
 
 </html>
