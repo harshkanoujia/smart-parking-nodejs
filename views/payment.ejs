@@ -251,9 +251,9 @@
 
       if (result.statusCode === 200) {
         alert(result.data.msg);
-        // setTimeout(() => {
-        //   window.location.href = '/dashboard';
-        // }, 2000);
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       } else {
         alert("Something went wrong!");
         submitBtn.disabled = false;
