@@ -110,12 +110,28 @@
         });
 
         const result = await res.json();
+        const token = res.headers.get('Authorization');
+
+        if (result.statusCode === 201 && token) {
+          const user = result.data.user;
+
+          localStorage.setItem("authToken", token);
+          localStorage.setItem("user", JSON.stringify(user));
+
+          messageBox.innerHTML = `✅ ${result.data.msg}<br>👤 Welcome, <strong>${user.fullName}</strong><br>📧 ${user.email}`;
+
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 2000);
+        } else {
+          errorBox.innerText = result.data.msg || result.message || 'Login failed.';
+        }
 
         if (res.ok) {
           alert("✅ Signup Successful!");
           window.location.href = "/dashboard";
         } else {
-          document.getElementById("errorText").textContent = result.message || "Signup failed.";
+          document.getElementById("errorText").textContent = result.data.msg || result.message || "Signup failed.";
         }
       } catch (err) {
         console.error(err);

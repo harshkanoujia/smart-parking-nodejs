@@ -6,6 +6,7 @@
   <title>Subscribe to a Plan</title>
   <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
   <style>
     * {
       box-sizing: border-box;
@@ -219,7 +220,7 @@
         <% if (currentPlan==='free' ) { %>
           <button class="current-plan" disabled>Current Plan</button>
           <% } else { %>
-            <form action="/switch-to-free" method="POST">
+            <form> <!--action="/switch-to-free" method="POST"-->
               <button type="submit">Switch to Free</button>
             </form>
             <% } %>
@@ -242,8 +243,7 @@
         <% if (currentPlan==='premium' ) { %>
           <button class="current-plan" disabled>Current Plan</button>
           <% } else { %>
-            <form id="subscriptionForm">
-              <input type="hidden" name="priceId" />
+            <form action="/payment">
               <button type="submit">Subscribe Now</button>
             </form>
             <% } %>
@@ -256,112 +256,6 @@
     <p>&copy; <%= new Date().getFullYear() %> Parking Management Software | All Rights Reserved</p>
   </div>
 
-
-  <script src="https://js.stripe.com/v3/"></script>
-
-  <!-- <script>
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const user = JSON.parse(userData);
-      const greeting = document.querySelector("h1");
-      if (greeting) {
-        greeting.innerText = `Choose Your Plan, ${user.fullName} 👋`;
-      }
-    }
-
-    const stripe = Stripe('<%= STRIPE_PUBLIC_KEY %>');
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      const form = document.getElementById("subscriptionForm");
-
-      if (!form) return;
-
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        alert("Please log in first.");
-        return window.location.href = '/login';
-      }
-
-      // Step 1: Get priceId from backend
-      try {
-        const res = await fetch("/api/subscription/premium-priceId?plan=premium", {
-          method: "GET",
-          headers: {
-            Authorization: token
-          }
-        });
-        const data = await res.json();
-
-        if (!res.ok || !data.priceId) {
-          alert("Could not get price ID.");
-          return;
-        }
-
-        // Step 2: Set hidden field
-        const hiddenField = document.querySelector("input[name='stripePriceId']");
-        if (hiddenField) hiddenField.value = data.stripePriceId;
-      } catch (err) {
-        console.error("Failed to fetch price ID:", err);
-        return alert("Something went wrong.");
-      }
-
-      // Step 3: Handle form submit
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const priceId = form.querySelector("input[name='stripePriceId']").value;
-
-        const res = await fetch("/api/subscription/premium", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token
-          },
-          body: JSON.stringify({ priceId })
-        });
-
-        const response = await res.json();
-
-        if (res.ok && response.data?.clientSecret) {
-          const result = await stripe.confirmCardPayment(response.data.clientSecret);
-          if (result.error) {
-            console.error("Payment error:", result.error);
-            alert("Payment failed: " + result.error.message);
-          } else {
-            alert("Subscription successful! 🎉");
-            window.location.href = "/dashboard";
-          }
-        } else {
-          alert(response.data?.msg || "Subscription failed");
-        }
-      });
-    });
-
-    function logoutUser() {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        alert('Please log in first.');
-        return window.location.href = '/login';
-      }
-
-      fetch('/api/auth/user/logout', {
-        method: 'POST',
-        headers: {
-          'Authorization': token
-        }
-      })
-        .then(res => {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          window.location.href = '/';
-        })
-        .catch(err => {
-          console.error("Logout error:", err);
-          alert("Something went wrong.");
-        });
-    }
-  </script> -->
-
   <script>
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -371,82 +265,6 @@
         greeting.innerText = `Choose Your Plan, ${user.fullName} 👋`;
       }
     }
-
-    const stripe = Stripe('<%= STRIPE_PUBLIC_KEY %>');
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      const form = document.getElementById("subscriptionForm");
-
-      if (!form) return;
-
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        alert("Please log in first.");
-        return window.location.href = '/login';
-      }
-
-      // ✅ Step 1: Get priceId from backend
-      try {
-        const res = await fetch("/api/subscriptions/priceId?plan=premium", {
-          method: "GET",
-          headers: {
-            Authorization: token
-          }
-        });
-
-        const result = await res.json();
-
-        if (!res.ok || !result.data.priceId) {
-          alert("Could not get price ID.");
-          return;
-        }
-
-        // ✅ Step 2: Dynamically inject hidden field
-        let hiddenField = form.querySelector("input[name='priceId']");
-        if (!hiddenField) {
-          hiddenField = document.createElement("input");
-          hiddenField.type = "hidden";
-          hiddenField.name = "priceId";
-          form.appendChild(hiddenField);
-        }
-        hiddenField.value = result.data.priceId;
-
-      } catch (err) {
-        console.error("Failed to fetch price ID:", err);
-        return alert("Something went wrong.");
-      }
-
-      // ✅ Step 3: Handle form submit
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const priceId = form.querySelector("input[name='priceId']").value;
-
-        const res = await fetch("/api/subscriptions/premium", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token
-          },
-          body: JSON.stringify({ priceId })
-        });
-
-        const response = await res.json();
-
-        if (res.ok && response.data?.clientSecret) {
-          const result = await stripe.confirmCardPayment(response.data.clientSecret);
-          if (result.error) {
-            console.error("Payment error:", result.error);
-            alert("Payment failed: " + result.error.message);
-          } else {
-            alert("Subscription successful! 🎉");
-            window.location.href = "/dashboard";
-          }
-        } else {
-          alert(response.message || "Subscription failed");
-        }
-      });
-    });
 
     function logoutUser() {
       const token = localStorage.getItem('authToken');

@@ -56,11 +56,11 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
   let currency = "Inr";
   let amount = totalAmount * 100;               // convert ruppee to paise 
   let customerEmail = req.userData.email;
-  let paymentMethod = req.body.paymentMethod;
+  let paymentMethodId = req.body.paymentMethod;
   let customerId = req.userData.stripeCustomerId;
 
   // payment via stripe
-  const payment = await createPaymentIntent(customerId, paymentMethod, amount, currency, customerEmail);
+  const payment = await createPaymentIntent(customerId, paymentMethodId, amount, currency, customerEmail);
   if (payment.statusCode != 200) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: payment.data } })
   console.log("Stripe Payment", payment)
 

@@ -112,7 +112,10 @@ const SUBSCRIPTION_CONSTANTS = {
   INVALID_AMOUNT: "Invalid Amount !. Amount must be valid and in Ruppee.",
   STRIPE_ID_NOT_FOUND: "You are not register on stripe. Contact with Admin.",
   SUBSCRIBE_SUCCUSS: "You are successfully subscribe Premium feature. It will activated in 24 hours.",
-  PLAN_EXIST: "Plan must be unique for every product. This plan already exist."
+  PLAN_EXIST: "Plan must be unique for every product. This plan already exist.",
+  STRIPE_ID_INVALID: "User Stripe Id is not found !",
+  SUBSCRIPTION_SUCCESS: "Subscription initiated. Payment processed automatically. waiting for confirmation",
+  SUBSCRIPTION_NOT_FOUND: "The Subscription you want to Subscribe. Not Found !"
 }
 
 

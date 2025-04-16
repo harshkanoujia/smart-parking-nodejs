@@ -39,14 +39,15 @@ const userSchema = new mongoose.Schema({
   subscriptionStatus: { type: String, enum: ['free', 'premium'], default: 'free' },
 
   subscription: {
-    planId: String,                     // Stripe Price ID
-    subscriptionId: String,             // Stripe Subscription ID
+    planId: { type: String },                         // Stripe Price ID
+    subscriptionId: { type: String },                 // Stripe Subscription ID
     stripeStatus: { type: String, enum: ['incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'unpaid', 'canceled'], default: 'incomplete' },
-    currentPeriodEnd: Date,             // End date of current billing cycle
-    startDate: Date,
-    endDate: Date
+    currentPeriodEnd: { type: Number },               // End date of current billing cycle
+    defaultPaymentMethod: { type: String },
+    startDate: { type: Number },
+    endDate: { type: Number },
   },
-  
+
   insertDate: {
     type: Number,
     default: () => {
@@ -100,8 +101,8 @@ function validateUserRegister(post) {
     mobile: Joi.string().min(10).max(15).required(),
     password: Joi.string().min(6).max(250).required(),
     gender: Joi.string().valid('male', 'female', 'other').required(),
-    profilePic: Joi.string().max(255).allow('', null).optional(),
-    deviceToken: Joi.string().max(255).allow('', null).optional(),
+    profilePic: Joi.string().min(1).allow('', null).optional(),
+    deviceToken: Joi.string().min(1).allow('', null).optional(),
     location: Joi.object(),
     city: Joi.string().min(1).max(150).required(),
     state: Joi.string().min(1).max(50).required(),
@@ -128,8 +129,8 @@ function validateUserUpdate(put) {
     mobile: Joi.string().min(10).max(12).optional(),
     // password: Joi.string().min(3).max(250).allow(""),    // forgot password
     gender: Joi.string().valid('male', 'female', 'other').optional(),
-    profilePic: Joi.string().min(1).max(250).optional(),
-    deviceToken: Joi.string().min(1).max(250).optional(),
+    profilePic: Joi.string().min(1).optional(),
+    deviceToken: Joi.string().min(1).optional(),
     location: Joi.object(),
     city: Joi.string().min(1).max(150).optional(),
     state: Joi.string().min(1).max(50).optional(),

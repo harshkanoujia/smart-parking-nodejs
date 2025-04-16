@@ -223,17 +223,17 @@
   </div>
 
   <script>
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Please log in first.');
+      window.location.href = '/login';
+    }
+
     const parkingAreaIdInput = document.querySelector('input[name="parkingAreaId"]');
     const daysInput = document.querySelector('input[name="days"]');
     const hoursInput = document.querySelector('input[name="hours"]');
     const amountDisplay = document.getElementById('amountDisplay');
     const amountPerHour = document.getElementById('amountPerHour');
-
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      alert('Please log in first.');
-      return window.location.href = '/login';
-    }
 
     function debounce(func, delay) {
       let timeout;

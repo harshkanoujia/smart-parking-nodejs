@@ -46,7 +46,7 @@ const Subscription = mongoose.model('Subscription', subscriptionSchema);
 
 
 // subscription
-function validateSubscription(post) {
+function validateProductPrice(post) {
   const Schema = Joi.object({
     plan: Joi.string().min(3).max(250).required(),
     name: Joi.string().min(3).max(250).required(),
@@ -56,7 +56,19 @@ function validateSubscription(post) {
   return Schema.validate(post);
 }
 
+function validateSubscriptionPlan(post) {
+  const Schema = Joi.object({
+    priceId: Joi.string().optional(),
+    subscriptionId: Joi.objectId().optional(),
+    plan: Joi.string().min(3).max(250).optional(),
+    paymentMethodId: Joi.string().min(3).max(250).required(),
+    customerEmail: Joi.string().email().min(3).max(250).required()
+  });
+  return Schema.validate(post);
+}
+
 module.exports = {
   Subscription,
-  validateSubscription
+  validateProductPrice,
+  validateSubscriptionPlan
 }
