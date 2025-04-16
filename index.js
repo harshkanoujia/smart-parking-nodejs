@@ -30,7 +30,7 @@ require('./startup/validation')();      // vaidate object id
 require('./startup/cors')(app);         // cors middleware setup for external api call 
 require('./startup/routes')(app);       // routes load
 require('./startup/prod')(app);         // production level
-require('./startup/logger');            // apiReq save 
+require('./startup/logger');            // apiReq save
 
 
 
