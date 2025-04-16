@@ -15,12 +15,15 @@ const parkingArea = require('../routes/parkingAreas');
 const parkingSlot = require('../routes/parkingSlots');
 const payment = require("../routes/payments");
 const subscribe = require("../routes/subscriptions");
+const stripeWebhook = require('../routes/webhooks');
 
 // Error Handling
 const error = require('../middleware/error');
 
 
 module.exports = function (app) {
+  app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 

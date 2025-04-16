@@ -1,11 +1,10 @@
-const express = require('express');
 const config = require('config');
+const express = require('express');
 const router = express.Router();
 
 const { webhook } = require('../services/stripeFunctions');
-const { User } = require('../model/User');
-const { SUBSCRIPTION_CONSTANTS } = require('../config/constant');
 const webhookSecret = config.get('STRIPE_WEBHOOK_SIGNING_SECRET');
+
 
 /*  working with stripe
 Install Stripe CLI with : brew install stripe/stripe-cli/stripe
@@ -17,64 +16,47 @@ for manually testing <stripe trigger invoice.payment_succeeded> use this
 
 router.post('/', async (req, res) => {
 
-  const sig = req.headers['stripe-signature'];
-
-  let event = await webhook(req, sig, webhookSecret);
+  const sig = req.headers["stripe-signature"];
+  const event = await webhook(req, sig, webhookSecret);
   if (event.statusCode !== 200) {
     return res.status(event.statusCode).json({ message: event.message, data: event.data });
   }
-
-  const stripeCustomerId = event.data.data.object.customer;
-
-  let invoice, customerId, subscriptionId;
-  try {
-    console.log('Received event:', event.data.type);
-
-    // Handle the event
-    switch (event.data.type) {
-      case 'invoice.payment_succeeded':
-        invoice = event.data.object;
-        customerId = invoice.customer;
-        subscriptionId = invoice.subscription;
-
-        console.log(invoice);
-        // Add your logic for handling a new customer
-        break;
-
-      case 'invoice.payment_failed':
-        invoice = event.data.object;
-        customerId = invoice.customer;
-        subscriptionId = invoice.subscription;
-
-        console.log(invoice);
-        // Add your logic for handling a new customer
-        break;
+  console.log('event', event.data);
 
 
-      case 'customer.subscription.deleted':
-        const subscription = event.data.object;
-        console.log(subscription);
-        // Add your logic for handling a new customer
-        break;
+  // Now handle the event
+  switch (event.data.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.data.object;
+      console.log('PaymentIntent was successful:', paymentIntent.id);
+      break;
 
-      case 'payment_method.attached':
-        const paymentMethodAttached = event.data.data.object;
-        console.log('Payment method attached:', paymentMethodAttached);
-        // Handle the attached payment method
-        break;
+    case 'payment_method.attached':
+      const paymentMethodAttached = event.data.data.object;
+      console.log('Payment method attached:', paymentMethodAttached);
+      break;
 
-      default:
-        console.log(`Unhandled event type: ${event.data.type}`);
-    }
+    case 'invoice.payment_succeeded':
+      console.log('Invoice paid:', event.data.data.object.id);
+      break;
 
-    console.log(event)
-    console.log("Object", event.data.data.object)
-    res.status(200).send('Event processed');
-  } catch (err) {
-    console.error('Error processing webhook:', err);
-    res.status(400).send('Webhook Error');
+    case 'customer.subscription.created':
+      console.log(' Subscription created:', event.data.data.object.id);
+      break;
+
+    case 'customer.subscription.deleted':
+      console.log('Subscription cancelled: ', event.data.object);
+      break;
+
+    case 'invoice.payment_failed':
+      console.log("payment_failed: ", event.data.object);
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.data.type}`);
   }
-});
 
+  res.status(200).send('Webhook received');
+});
 
 module.exports = router;

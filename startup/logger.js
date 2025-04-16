@@ -5,14 +5,14 @@ const ApiLog = require('../model/apiLog');
 // api req and res log maintain
 module.exports = function (req, res, next) {
 
-  console.log({
+  console.info({
     host: req.headers["host"],
     contentType: req.headers["content-type"],
-    Authorization: req.headers["Authorization"],
+    Authorization: req.headers["authorization"],
     method: req.method,
     url: req.url,
     body: req.body,
-  })
+  });
 
   // cleanup() remove event listener 
   const cleanup = () => {

@@ -3,35 +3,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
+const { User } = require('../model/User');
 const { identityManager } = require('../middleware/auth');
 const { SUBSCRIPTION_CONSTANTS } = require('../config/constant');
-const { validateSubscription, Subscription } = require('../model/Subscription');
-const { createProductAndPrice, createSubscriptionPlan } = require('../services/stripeFunctions');
+const { Subscription, validateSubscriptionPlan, validateProductPrice } = require('../model/Subscription');
+const { createProductAndPrice, createSubscriptionPlan, linkPaymentMethodToCustomer, setAsDefaultPaymentMethod } = require('../services/stripeFunctions');
 
-
-
-// subscription create
-router.get('/priceId', identityManager(['user', 'admin']), async (req, res) => {
-
-  let criteria = {};
-
-  if (req.query.plan) criteria.plan = req.query.plan;
-  if (req.query.id) criteria._id = new mongoose.Types.ObjectId(req.query.id);
-
-  const subscription = await Subscription.findOne(criteria);
-
-  return res.status(200).json({
-    apiId: req.apiId,
-    statusCode: 200,
-    message: 'Success',
-    data: { priceId: subscription.stripePriceId }
-  });
-});
 
 // subscription create
 router.post('/create-product', identityManager(['admin']), async (req, res) => {
 
-  const { error } = validateSubscription(req.body);
+  const { error } = validateProductPrice(req.body);
   if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
   if (req.body.priceInRupee <= 50) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: SUBSCRIPTION_CONSTANTS.INVALID_AMOUNT } });
@@ -84,24 +66,54 @@ router.post('/create-product', identityManager(['admin']), async (req, res) => {
 
 });
 
+// user subscribe
+router.post('/subscribe-plan', identityManager(['user']), async (req, res) => {
 
-router.post('/premium', identityManager(['user']), async (req, res) => {
+  const { error } = validateSubscriptionPlan(req.body);
+  if (error) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: error.details[0].message } });
 
-  const user = req.userData;
+  const user = await User.findOne({ email: req.body.customerEmail });
+  if (!user.stripeCustomerId) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: SUBSCRIPTION_CONSTANTS.STRIPE_ID_NOT_FOUND } });
+
+
+  let criteria = {};
+  const { subscriptionId, priceId, plan } = req.body;
+  if (subscriptionId) criteria._id = new mongoose.Types.ObjectId(subscriptionId);
+  if (priceId) criteria.stripePriceId = priceId;
+  if (plan) criteria.plan = plan;
+
+  const subscription = await Subscription.findOne(criteria);
+  if (!subscription) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: SUBSCRIPTION_CONSTANTS.SUBSCRIPTION_NOT_FOUND } });
 
   let customerId = user.stripeCustomerId;
-  if (!customerId) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: SUBSCRIPTION_CONSTANTS.STRIPE_ID_NOT_FOUND } });
+  let stripePriceId = subscription.stripePriceId;
+  let paymentMethodId = req.body.paymentMethodId;
 
-  const subscription = await createSubscriptionPlan(customerId, req.body.priceId);
-  if (subscription.statusCode != 200) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: subscription.data } });
+  const attachPayment = await linkPaymentMethodToCustomer(paymentMethodId, customerId);
+  if (attachPayment.statusCode != 200) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: attachPayment.data } });
 
-  console.log(subscription)
-  const client_secret = subscription.data.client_secret;
+  const defaultPaymentMethod = await setAsDefaultPaymentMethod(customerId, paymentMethodId);
+  if (defaultPaymentMethod.statusCode != 200) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: defaultPaymentMethod.data } });
 
-  res.status(200).json({
+  // const payment = await createPaymentIntent(customerId, paymentMethodId, amount, currency, customerEmail);
+  // if (payment.statusCode != 200) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: payment.data } });
+  // console.log("PAYMENT ==> ",payment)
+
+  const subscriptionPlan = await createSubscriptionPlan(customerId, stripePriceId, paymentMethodId, user.id);
+  if (subscriptionPlan.statusCode != 200) return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: "Failure", data: { msg: subscription.data } });
+
+  // const client_secret = subscriptionPlan.data.client_secret;
+
+  return res.status(200).json({
+    apiId: req.apiId,
+    statusCode: 200,
     message: 'Success',
-    data: { msg: SUBSCRIPTION_CONSTANTS.SUBSCRIBE_SUCCUSS, clientSecret: client_secret, subscriptionId: subscription.data.subscription.id }
-  })
+    data: {
+      msg: SUBSCRIPTION_CONSTANTS.SUBSCRIPTION_SUCCESS,
+      // clientSecret: client_secret,
+      subscriptionId: subscriptionPlan.data.subscriptionId
+    }
+  });
 });
 
 
