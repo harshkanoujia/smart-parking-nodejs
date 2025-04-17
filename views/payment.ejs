@@ -6,6 +6,7 @@
   <title>Subscribe to Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://js.stripe.com/v3/"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -19,28 +20,71 @@
 
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
       font-family: 'Inter', sans-serif;
       background-color: var(--background);
       color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .navbar {
+      background-color: #1e293b;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar h2 a {
+      font-size: 1.5rem;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .navbar div a {
+      color: #cbd5e1;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .navbar div a:hover {
+      color: #ffffff;
+    }
+
+    .main-content {
+      flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      padding: 1rem;
+      padding: 2rem 1rem;
+      width: 100%;
+      position: relative;
+      min-height: calc(100vh - 80px);
     }
 
     .container {
       background: #ffffff;
+      min-height: 500px;
       max-width: 480px;
       width: 100%;
       padding: 2.5rem;
       border-radius: 1rem;
       box-shadow: 0 12px 50px rgba(0, 0, 0, 0.08);
       transition: all 0.3s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     h1 {
@@ -67,6 +111,28 @@
       flex-direction: column;
       gap: 0.75rem;
       margin-bottom: 2rem;
+    }
+
+    .payment-options-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-section {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.5s ease;
+      margin-top: 0;
+    }
+
+    .card-section.active {
+      max-height: 500px;
+      margin-top: 1rem;
+    }
+
+    .pay-option.active {
+      background-color: #e0e7ff;
+      border-color: #c7d2fe;
     }
 
     .pay-option {
@@ -146,43 +212,86 @@
       font-size: 1rem;
     }
 
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      color: var(--muted);
+    .footer-inside {
       text-align: center;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    .global-footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    @media (max-width: 600px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .navbar div a {
+        margin: 0.5rem 1rem 0 0;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Subscribe to Premium</h1>
-    <p class="subtitle">Unlock all features for just <span class="price-highlight">₹1499/month</span></p>
 
-    <div class="payment-options" id="payment-options">
-      <div class="pay-option active" id="card-button">Pay with Card</div>
-      <div class="pay-option" disabled>Google Pay (Coming soon)</div>
-      <div class="pay-option" disabled>Apple Pay (Coming soon)</div>
+  <div class="navbar">
+    <h2><a href="/dashboard">🚗 Parking Dashboard</a></h2>
+    <div>
+      <a href="/subscribe"><i class="fas fa-crown"></i> Premium</a>
+      <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+      <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="container">
+      <h1>Subscribe to Premium</h1>
+      <p class="subtitle">Unlock all features for just <span class="price-highlight">₹1499/month</span></p>
+
+      <div class="payment-options-wrapper" id="payment-options-wrapper">
+        <div class="payment-options" id="payment-options">
+          <div class="pay-option" id="card-button">Pay with Card</div>
+          <div class="pay-option" id="google-button">Google Pay (Coming soon)</div>
+          <div class="pay-option" id="apple-button">Apple Pay (Coming soon)</div>
+        </div>
+
+        <div class="card-section" id="card-section">
+          <form id="payment-form" class="card-box">
+            <div id="card-element"></div>
+            <div id="card-errors" role="alert"></div>
+            <button type="submit" id="submit">
+              <span class="btn-text">Pay ₹1499 & Upgrade</span>
+              <span class="loader" style="display: none; margin-left: 8px;">⏳</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="footer-inside">
+          Your payment is secure and encrypted.
+        </div>
+      </div>
     </div>
 
-    <div class="card-section" id="card-section">
-      <form id="payment-form" class="card-box">
-        <div id="card-element"></div>
-        <div id="card-errors" role="alert"></div>
-        <button type="submit" id="submit">
-          <span class="btn-text">Pay ₹1499 & Upgrade</span>
-          <span class="loader" style="display: none; margin-left: 8px;">⏳</span>
-        </button>
-      </form>
+    <div class="global-footer">
+      &copy; <%= new Date().getFullYear() %> Parking Management Software | All Rights Reserved.
     </div>
 
-    <div class="footer">Your payment is secure and encrypted.</div>
   </div>
 
   <script>
     const userData = localStorage.getItem('user');
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('authToken');
     if (!token) {
       alert('Please log in first.');
       window.location.href = '/login';
@@ -194,46 +303,79 @@
     cardElement.mount("#card-element");
 
     const cardBtn = document.getElementById("card-button");
+    const googleBtn = document.getElementById("google-button");
+    const appleBtn = document.getElementById("apple-button");
     const cardSection = document.getElementById("card-section");
+    const paymentOptions = document.getElementById("payment-options");
 
     cardBtn.addEventListener("click", () => {
-      document.querySelectorAll(".pay-option").forEach(btn => btn.classList.remove("active"));
-      cardBtn.classList.add("active");
-      cardSection.classList.add("active");
+      const isActive = cardBtn.classList.contains("active");
+
+      // Toggle card section
+      if (isActive) {
+        cardSection.classList.remove("active");
+        cardBtn.classList.remove("active");
+        googleBtn.style.display = "block";
+        appleBtn.style.display = "block";
+      } else {
+        cardBtn.classList.add("active");
+        cardSection.classList.add("active");
+        googleBtn.style.display = "none";
+        appleBtn.style.display = "none";
+      }
     });
+
+    googleBtn.addEventListener("click", () => {
+      resetOptions();
+    });
+
+    appleBtn.addEventListener("click", () => {
+      resetOptions();
+    });
+
+    function resetOptions() {
+      // Hide card section
+      cardSection.classList.remove("active");
+      cardBtn.classList.remove("active");
+
+      // Show all options
+      cardBtn.style.display = "block";
+      googleBtn.style.display = "block";
+      appleBtn.style.display = "block";
+    }
 
     const form = document.getElementById("payment-form");
 
-    const user = JSON.parse(userData);
-    const customerName = user.fullName;
+    let user = {};
+    try {
+      user = JSON.parse(userData);
+    } catch (e) {
+      console.error("User data parse error:", e);
+      alert("Invalid user data. Please log in again.");
+      window.location.href = "/login";
+    }
     const customerEmail = user.email;
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-
       const submitBtn = document.getElementById("submit");
       submitBtn.disabled = true;
       const btnText = submitBtn.querySelector(".btn-text");
       const loader = submitBtn.querySelector(".loader");
-
-      // submitBtn.querySelector(".btn-text").textContent = "Processing...";
-      // submitBtn.querySelector(".loader").style.display = "inline";
-
       btnText.textContent = "Processing...";
       loader.style.display = "inline";
+
       const { paymentMethod, error } = await stripe.createPaymentMethod({
         type: "card",
         card: cardElement,
-        billing_details: {
-          email: customerEmail
-        }
+        billing_details: { email: customerEmail }
       });
 
       if (error) {
         document.getElementById("card-errors").textContent = error.message;
         submitBtn.disabled = false;
-        submitBtn.querySelector(".btn-text").textContent = "Pay ₹1499 & Upgrade";
-        submitBtn.querySelector(".loader").style.display = "none";
+        btnText.textContent = "Pay ₹1499 & Upgrade";
+        loader.style.display = "none";
         return;
       }
 
@@ -250,18 +392,22 @@
       const result = await res.json();
 
       if (result.statusCode === 200) {
-        alert(result.data.msg);
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 2000);
+        alert(`Subscription successful! Subscription ID: ${result.data.subscriptionId}`);
+        localStorage.setItem("subscriptionId", result.data.subscriptionId);
+        setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
       } else {
         alert("Something went wrong!");
         submitBtn.disabled = false;
-        submitBtn.querySelector(".btn-text").textContent = "Pay ₹1499 & Upgrade";
-        submitBtn.querySelector(".loader").style.display = "none";
-        console.log(result.data.msg);
+        btnText.textContent = "Pay ₹1499 & Upgrade";
+        loader.style.display = "none";
+        console.error(result.data.msg);
       }
     });
+
+    function logoutUser() {
+      localStorage.clear();
+      window.location.href = "/login";
+    }
   </script>
 </body>
 
