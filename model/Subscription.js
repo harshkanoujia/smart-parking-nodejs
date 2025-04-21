@@ -1,24 +1,22 @@
 const Joi = require('joi');
 const mongoose = require('mongoose');
+const { ObjectId } = mongoose.Schema.Types;
 
 
 // subscription Schema
 const subscriptionSchema = new mongoose.Schema({
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
 
-  plan: { type: String },
-  name: { type: String },
-  description: { type: String },
-  stripeProductId: { type: String },
-  stripePriceId: { type: String },
-  currency: { type: String },
-  amountInPaise: { type: Number },
-  amountInRupee: { type: Number },
-  interval: { type: String, enum: ['month', 'year'], default: 'month' },
+  userId: { type: ObjectId, ref: 'User' },
+  servicePlanId: { type: ObjectId, ref: 'ServicePlan' },              
+  stripeSubscriptionId: { type: String },                  // Stripe actual subscription ID
+  stripeCustomerId: { type: String },
+  status: { type: String, enum: ['active', 'canceled', 'past_due', 'pending' ], default: 'pending' },
 
-  subscribedUsers: {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-  },
+  currentPeriodStart: { type: Date, default: Date.now  },
+  currentPeriodEnd: { type: Date, default: Date.now  },
+
+  cancelAtPeriodEnd: { type: Boolean, default: false },
+  canceledAt: { type: Date, default: null },
 
   insertDate: {
     type: Number,
@@ -27,7 +25,7 @@ const subscriptionSchema = new mongoose.Schema({
     }
   },
   creationDate: {
-    type: String,
+    type: Date,
     default: () => {
       return new Date();
     }
@@ -37,26 +35,19 @@ const subscriptionSchema = new mongoose.Schema({
     default: () => {
       return Math.round(new Date() / 1000);
     }
+  },
+  displayDate: {
+    type: String,
+    default: () => new Date().toString()
   }
-});
+});   // { timestamps: true })      // if we inable this then it automate creates two field in document which is createdAt and updatedAt and it automate update when we update the document 
 
-subscriptionSchema.index({ plan: 1 }, { unique: true });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
 
 
-// subscription
-function validateProductPrice(post) {
-  const Schema = Joi.object({
-    plan: Joi.string().min(3).max(250).required(),
-    name: Joi.string().min(3).max(250).required(),
-    description: Joi.string().min(3).max(250).optional(),
-    priceInRupee: Joi.number().min(1).required()
-  });
-  return Schema.validate(post);
-}
 
-function validateSubscriptionPlan(post) {
+function validateSubscription(post) {
   const Schema = Joi.object({
     priceId: Joi.string().optional(),
     subscriptionId: Joi.objectId().optional(),
@@ -69,6 +60,5 @@ function validateSubscriptionPlan(post) {
 
 module.exports = {
   Subscription,
-  validateProductPrice,
-  validateSubscriptionPlan
+  validateSubscription
 }

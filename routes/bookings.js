@@ -41,8 +41,8 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
     userId: req.reqUserId,
     vehicleId: vehicle._id,
     parkingAreaId: req.body.parkingAreaId,
-    days: req.body.days * 60 * 60 * 24,
-    hours: req.body.hours * 60 * 60
+    daysInSec: req.body.days * 60 * 60 * 24,
+    hoursInSec: req.body.hours * 60 * 60
   });
 
   let hours = req.body.hours !== undefined && req.body.hours !== 0 ? req.body.hours : null
@@ -90,21 +90,25 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
 
   const payments = new Payment({
     bookingId: booking._id,
-    paymentIntentId: payment.data.payment_method,
-    customerId: payment.data.customer,
-    amountInRupee: totalAmount,
-    amountInPaise: payment.data.amount,
+    userId: req.userData._id,
+    stripePaymentIntentId: payment.data.id,
+    stripePaymentMethodId: payment.data.payment_method,
+    stripeCustomerId: payment.data.customer,
+    amountInBaseCurrency: totalAmount,
+    amountInSubUnits: payment.data.amount_received,
     currency: payment.data.currency,
-    status: 'paid'
-  })
+    status: payment.data.status,
+    paymentFor: 'booking',
+  });
 
+  payments.insertDate = payment.data.created;
   await payments.save();
 
-  booking.isPaid = true;
+
   booking.status = "booked";
   booking.slotNo = slot.slotNo;
   booking.paymentId = payments._id;
-  booking.transactionStatus = "completed";
+  booking.transactionStatus = "inProgress";
 
   await booking.save();
 
@@ -116,10 +120,10 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
     'parkingAreaId',
     'paymentId',
     'transactionStatus',
-    'days',
-    'hours',
     'isPaid',
-    'totalAmount'
+    'daysInSec',
+    'hoursInSec',
+    'displayDate'
   ]);
 
   return res.status(201).json(({

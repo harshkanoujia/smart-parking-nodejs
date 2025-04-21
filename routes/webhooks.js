@@ -2,6 +2,9 @@ const config = require('config');
 const express = require('express');
 const router = express.Router();
 
+const { Payment } = require('../model/Payment');
+const { Booking } = require('../model/Booking');
+const { Webhook } = require('../model/Webhook');
 const { webhook } = require('../services/stripeFunctions');
 const webhookSecret = config.get('STRIPE_WEBHOOK_SIGNING_SECRET');
 
@@ -16,47 +19,173 @@ for manually testing <stripe trigger invoice.payment_succeeded> use this
 
 router.post('/', async (req, res) => {
 
+  let payment, payments, booking, criteria, criteria1;
+
   const sig = req.headers["stripe-signature"];
+  
   const event = await webhook(req, sig, webhookSecret);
-  if (event.statusCode !== 200) {
-    return res.status(event.statusCode).json({ message: event.message, data: event.data });
-  }
-  console.log('event', event.data);
+  if (event.statusCode !== 200) return res.status(event.statusCode).json({ message: event.message, data: event.data });
+  
+  const webhooks = new Webhook({
+    payload: event.data,
+    type: event.data.type
+  });
+  await webhooks.save();
 
 
-  // Now handle the event
   switch (event.data.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.data.object;
-      console.log('PaymentIntent was successful:', paymentIntent.id);
+
+    case 'charge.succeeded':
+      const charge = event.data.data.object;
+      console.log(' \n\n charge was successful:', charge);
+
+      criteria = {
+        stripeCustomerId: charge.customer,
+        stripePaymentIntentId: charge.payment_intent,
+        stripePaymentMethodId: charge.payment_method
+      }
+
+      payment = await Payment.findOne(criteria);
+      if (!payment) return console.log("Payment not found !");
+
+      payment.isPaid = charge.paid;
+      payment.receiptUrl = charge.receipt_url;
+      payment.type = charge.payment_method_details.type;
+      payment.brand = charge.payment_method_details.card.brand;
+      payment.last4 = charge.payment_method_details.card.last4;
+      payment.expMonth = charge.payment_method_details.card.exp_month;
+      payment.expYear = charge.payment_method_details.card.exp_year;
+      payment.lastUpdatedDate = charge.created;
+
+      await payment.save();
+
       break;
+
+    case 'charge.failed':
+      const chargeFalied = event.data.data.object;
+      console.log(' \n\n charge was failed:', chargeFalied);
+
+      criteria = {
+        stripeCustomerId: chargeFalied.customer,
+        stripePaymentIntentId: chargeFalied.payment_intent,
+        stripePaymentMethodId: chargeFalied.payment_method
+      }
+
+      payment = await Payment.findOne(criteria);
+      if (!payment) return console.log("Payment not found !");
+
+      payment.isPaid = chargeFalied.paid;
+      payment.receiptUrl = chargeFalied.receipt_url;
+      payment.type = chargeFalied.payment_method_details.type;
+      payment.brand = chargeFalied.payment_method_details.card.brand;
+      payment.last4 = chargeFalied.payment_method_details.card.last4;
+      payment.expMonth = chargeFalied.payment_method_details.card.exp_month;
+      payment.expYear = chargeFalied.payment_method_details.card.exp_year;
+      payment.lastUpdatedDate = chargeFalied.created;
+
+      await payment.save();
+
+      break;
+
 
     case 'payment_method.attached':
       const paymentMethodAttached = event.data.data.object;
-      console.log('Payment method attached:', paymentMethodAttached);
+      console.log(' \n\n Payment method attached:', paymentMethodAttached);
+      break;
+
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.data.object;
+      console.log(' \n\n PaymentIntent was successful:', paymentIntent);
+
+      criteria1 = {
+        stripePaymentIntentId: paymentIntent.id,
+        stripeCustomerId: paymentIntent.customer,
+        stripePaymentMethodId: paymentIntent.payment_method
+      }
+
+      payments = await Payment.findOne(criteria1);
+      if (!payments) return console.log("Payment not found !");
+
+      booking = await Booking.findOne({ paymentId: payments._id });
+      if (!booking) return console.log("Booking not found !");
+
+      payments.isPaid = true;
+      payments.status = paymentIntent.status;
+      payments.currency = paymentIntent.currency;
+      payments.amountInSubUnits = paymentIntent.amount_received;
+      payments.lastUpdatedDate = paymentIntent.created;
+
+      await payments.save();
+
+      booking.transactionStatus = "completed";
+      booking.isPaid = true;
+
+      await booking.save();
+
+      break;
+
+    case 'payment_intent.payment_failed':
+      const paymentIntentFailed = event.data.data.object;
+      console.log(' \n\n PaymentIntent was falied:', paymentIntentFailed);
+
+      criteria1 = {
+        stripePaymentIntentId: paymentIntentFailed.id,
+        stripeCustomerId: paymentIntentFailed.customer,
+        stripePaymentMethodId: paymentIntentFailed.payment_method
+      }
+
+      payments = await Payment.findOne(criteria1);
+      if (!payments) return console.log("Payment not found !");
+
+      booking = await Booking.findOne({ paymentId: payments._id });
+      if (!booking) return console.log("Booking not found !");
+
+      payments.isPaid = false;
+      payments.status = paymentIntentFailed.status;
+      payments.currency = paymentIntentFailed.currency;
+      payments.amountInSubUnits = paymentIntentFailed.amount_received;
+      payments.lastUpdatedDate = paymentIntentFailed.created;
+
+      await payments.save();
+
+      booking.transactionStatus = "failure";
+      booking.isPaid = false;
+
+      await booking.save();
+
+      break;
+
+
+    case 'invoice.created':
+      console.log(" \n\n invoice created: ", event.data.data);
       break;
 
     case 'invoice.payment_succeeded':
-      console.log('Invoice paid:', event.data.data.object.id);
-      break;
-
-    case 'customer.subscription.created':
-      console.log(' Subscription created:', event.data.data.object.id);
-      break;
-
-    case 'customer.subscription.deleted':
-      console.log('Subscription cancelled: ', event.data.object);
+      console.log(' \n\n Invoice payment_succeeded:', event.data.data);
       break;
 
     case 'invoice.payment_failed':
-      console.log("payment_failed: ", event.data.object);
+      console.log(" \n\n invoice payment_failed: ", event.data.data);
       break;
 
+
+    case 'customer.subscription.created':
+      console.log(' \n\n Subscription created:', event.data.data.object.id);
+      break;
+
+    case 'customer.subscription.deleted':
+      console.log(' \n\n Subscription cancelled: ', event.data.object);
+      break;
+
+
     default:
-      console.log(`Unhandled event type ${event.data.type}`);
+      console.log(` \n\n Unhandled event type ${event.data.type}`);
+      console.log('\n Unhandled is here ', event.data);
+
   }
 
   res.status(200).send('Webhook received');
 });
+
 
 module.exports = router;

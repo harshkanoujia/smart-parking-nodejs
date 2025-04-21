@@ -8,18 +8,18 @@ const bookingSchema = new mongoose.Schema({
   vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle' },
   parkingAreaId: { type: mongoose.Schema.Types.ObjectId, ref: 'ParkingArea' },
   slotNo: { type: Number, default: null },
-  days: { type: Number, default: null },
-  hours: { type: Number, default: null },
+  daysInSec: { type: Number, default: null },
+  hoursInSec: { type: Number, default: null },
 
   status: { type: String, enum: ["pending", "cancelled", "completed", "booked"], default: "pending" },
-  
+
   paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
   isPaid: { type: Boolean, default: false },
-  transactionStatus: { type: String, enum: ["pending", "completed", "failure"], default: "pending" },
+  transactionStatus: { type: String, enum: ["pending", "completed", "failure", "inProgress"], default: "pending" },
   refundStatus: { type: String, enum: ["refundPending", "refunded", "noRefund", "failed"], default: "noRefund" },
 
-  cancellationTime: { type: Number, default: null },
-  canceledBy: { type: Number, default: null },
+  cancellationTime: { type: Number },
+  canceledBy: { type: String, enum: ['user', 'admin', 'manager'] },
 
   insertDate: {
     type: Number,
@@ -28,16 +28,18 @@ const bookingSchema = new mongoose.Schema({
     }
   },
   creationDate: {
-    type: String,
-    default: () => {
-      return new Date();
-    }
+    type: Date,
+    default: Date.now
   },
   lastUpdatedDate: {
     type: Number,
     default: () => {
       return Math.round(new Date() / 1000);
     }
+  },
+  displayDate: {
+    type: String,
+    default: () => new Date().toString()
   }
 });
 
