@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 
 const { User } = require('../model/User');
+const { Invoice } = require('../model/Invoice');
 const { Payment } = require('../model/Payment');
 const { Vehicle } = require('../model/Vehicle');
 const { ParkingArea } = require('../model/ParkingArea');
@@ -16,7 +17,7 @@ const { PARK_AREA_CONSTANTS, BOOKING_CONSTANTS } = require('../config/constant')
 
 
 
-// user can book
+// booking create
 router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res) => {
 
   const { error } = validateBookingCreate(req.body);
@@ -54,7 +55,7 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
   if (totalAmount <= 50) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: BOOKING_CONSTANTS.INVALID_AMOUNT } });
 
   let currency = "Inr";
-  let amount = totalAmount * 100;               // convert ruppee to paise 
+  let amount = totalAmount * 100;               // convert ruppee to paise
   let customerEmail = req.userData.email;
   let paymentMethodId = req.body.paymentMethod;
   let customerId = req.userData.stripeCustomerId;
@@ -62,7 +63,7 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
   // payment via stripe
   const payment = await createPaymentIntent(customerId, paymentMethodId, amount, currency, customerEmail);
   if (payment.statusCode != 200) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: payment.data } })
-  console.log("Stripe Payment", payment)
+  console.log("Stripe Payment", payment);
 
 
   await ParkingArea.updateOne(
@@ -78,7 +79,8 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
         status: "booked",
         bookedBy: req.reqUserId,
         vehicleId: vehicle._id,
-        bookedDate: Math.floor(Date.now() / 1000)
+        bookingDate: Math.floor(Date.now() / 1000),
+        bookingDisplayDate: new Date().toString()
       }
     }
   );
@@ -104,13 +106,29 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
   payments.insertDate = payment.data.created;
   await payments.save();
 
-
-  booking.status = "booked";
   booking.slotNo = slot.slotNo;
   booking.paymentId = payments._id;
-  booking.transactionStatus = "inProgress";
+
+  if (payments.status === "succeeded") {
+    booking.status = "booked";
+    booking.transactionStatus = "completed";
+  } else {
+    booking.status = "pending";
+    booking.transactionStatus = "inProgress";
+  }
+
+  const currentEpoch = Math.floor(new Date() / 1000);
+  const bookingEndInSec = booking.daysInSec + booking.hoursInSec;
+  booking.bookingEndAt = currentEpoch + bookingEndInSec;
 
   await booking.save();
+
+  await Invoice.create({
+    userId: req.userData.id,
+    bookingId: booking._id,
+    paymentId: payments._id,
+    status: "pending"
+  });
 
   const response = _.pick(booking, [
     'slotNo',
@@ -120,9 +138,9 @@ router.post('/', identityManager(['admin', 'user', 'manager']), async (req, res)
     'parkingAreaId',
     'paymentId',
     'transactionStatus',
-    'isPaid',
     'daysInSec',
     'hoursInSec',
+    'bookingEndAt',
     'displayDate'
   ]);
 

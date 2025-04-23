@@ -331,7 +331,7 @@
         }
 
         alert('✅ Booking & Payment Successful!');
-        window.location.href = '/dashboard';
+        setTimeout(() => { window.location.href = '/dashboard'; }, 10000);
       } catch (err) {
         console.error(err);
         errorMsg.textContent = 'Something went wrong.';

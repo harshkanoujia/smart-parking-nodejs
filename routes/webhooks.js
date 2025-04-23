@@ -5,32 +5,29 @@ const router = express.Router();
 const { Payment } = require('../model/Payment');
 const { Booking } = require('../model/Booking');
 const { Webhook } = require('../model/Webhook');
+const { Subscription } = require('../model/Subscription');
 const { webhook } = require('../services/stripeFunctions');
 const webhookSecret = config.get('STRIPE_WEBHOOK_SIGNING_SECRET');
 
 
-/*  working with stripe
-Install Stripe CLI with : brew install stripe/stripe-cli/stripe
-Now get webhook signing secret with : <stripe listen --forward-to localhost:3000/api/stripe/webhook > if running locally else <https://yourdomain.com/api/stripe/webhook>
-now response should be like this Ready! You are using Stripe API Version [2025-03-31.basil]. Your webhook signing secret is "..."
-for manually testing <stripe trigger invoice.payment_succeeded> use this
+/*  ================== working with stripe ======================================= 
+* Install Stripe CLI with : brew install stripe/stripe-cli/stripe
+* Now get webhook signing secret with : <stripe listen --forward-to localhost:3000/api/stripe/webhook > if running locally else <https://yourdomain.com/api/stripe/webhook>
+* now response should be like this Ready! You are using Stripe API Version [2025-03-31.basil]. Your webhook signing secret is "..."
+* for manually testing <stripe trigger invoice.payment_succeeded> use this
 */
 
 
 router.post('/', async (req, res) => {
 
-  let payment, payments, booking, criteria, criteria1;
+  let payment, payments, booking, criteria, criteria1, subscription;
 
   const sig = req.headers["stripe-signature"];
-  
+
   const event = await webhook(req, sig, webhookSecret);
   if (event.statusCode !== 200) return res.status(event.statusCode).json({ message: event.message, data: event.data });
-  
-  const webhooks = new Webhook({
-    payload: event.data,
-    type: event.data.type
-  });
-  await webhooks.save();
+
+  await Webhook.create({ payload: event.data, type: event.data.type });
 
 
   switch (event.data.type) {
@@ -51,10 +48,10 @@ router.post('/', async (req, res) => {
       payment.isPaid = charge.paid;
       payment.receiptUrl = charge.receipt_url;
       payment.type = charge.payment_method_details.type;
-      payment.brand = charge.payment_method_details.card.brand;
-      payment.last4 = charge.payment_method_details.card.last4;
-      payment.expMonth = charge.payment_method_details.card.exp_month;
-      payment.expYear = charge.payment_method_details.card.exp_year;
+      payment.brand = charge.payment_method_details?.card.brand;
+      payment.last4 = charge.payment_method_details?.card.last4;
+      payment.expMonth = charge.payment_method_details?.card.exp_month;
+      payment.expYear = charge.payment_method_details?.card.exp_year;
       payment.lastUpdatedDate = charge.created;
 
       await payment.save();
@@ -75,12 +72,12 @@ router.post('/', async (req, res) => {
       if (!payment) return console.log("Payment not found !");
 
       payment.isPaid = chargeFalied.paid;
-      payment.receiptUrl = chargeFalied.receipt_url;
-      payment.type = chargeFalied.payment_method_details.type;
-      payment.brand = chargeFalied.payment_method_details.card.brand;
-      payment.last4 = chargeFalied.payment_method_details.card.last4;
-      payment.expMonth = chargeFalied.payment_method_details.card.exp_month;
-      payment.expYear = chargeFalied.payment_method_details.card.exp_year;
+      payment.receiptUrl = chargeFalied?.receipt_url;
+      payment.type = chargeFalied.payment_method_details?.type;
+      payment.brand = chargeFalied.payment_method_details?.card.brand;
+      payment.last4 = chargeFalied.payment_method_details?.card.last4;
+      payment.expMonth = chargeFalied.payment_method_details?.card.exp_month;
+      payment.expYear = chargeFalied.payment_method_details?.card.exp_year;
       payment.lastUpdatedDate = chargeFalied.created;
 
       await payment.save();
@@ -106,9 +103,6 @@ router.post('/', async (req, res) => {
       payments = await Payment.findOne(criteria1);
       if (!payments) return console.log("Payment not found !");
 
-      booking = await Booking.findOne({ paymentId: payments._id });
-      if (!booking) return console.log("Booking not found !");
-
       payments.isPaid = true;
       payments.status = paymentIntent.status;
       payments.currency = paymentIntent.currency;
@@ -117,10 +111,20 @@ router.post('/', async (req, res) => {
 
       await payments.save();
 
-      booking.transactionStatus = "completed";
-      booking.isPaid = true;
+      if (payments.paymentFor === "booking") {
+        booking = await Booking.findOne({ paymentId: payments._id });
+        if (!booking) return console.log("Booking not found !");
 
-      await booking.save();
+        booking.transactionStatus = "completed";
+        await booking.save();
+
+      } else {
+        subscription = await Subscription.findOne({ paymentId: payments._id });
+        if (!subscription) return console.log("Subscription not found !");
+
+        subscription.transactionStatus = "completed";
+        await subscription.save();
+      }
 
       break;
 
@@ -137,9 +141,6 @@ router.post('/', async (req, res) => {
       payments = await Payment.findOne(criteria1);
       if (!payments) return console.log("Payment not found !");
 
-      booking = await Booking.findOne({ paymentId: payments._id });
-      if (!booking) return console.log("Booking not found !");
-
       payments.isPaid = false;
       payments.status = paymentIntentFailed.status;
       payments.currency = paymentIntentFailed.currency;
@@ -148,11 +149,20 @@ router.post('/', async (req, res) => {
 
       await payments.save();
 
-      booking.transactionStatus = "failure";
-      booking.isPaid = false;
+      if (payments.paymentFor === "booking") {
+        booking = await Booking.findOne({ paymentId: payments._id });
+        if (!booking) return console.log("Booking not found !");
 
-      await booking.save();
+        booking.transactionStatus = "completed";
+        await booking.save();
 
+      } else {
+        subscription = await Subscription.findOne({ paymentId: payments._id });
+        if (!subscription) return console.log("Subscription not found !");
+
+        subscription.transactionStatus = "completed";
+        await subscription.save();
+      }
       break;
 
 

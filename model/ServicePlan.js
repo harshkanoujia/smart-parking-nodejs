@@ -10,17 +10,17 @@ const servicePlanSchema = new mongoose.Schema({
   plan: { type: String },
   name: { type: String },
   description: { type: String },
-  features: { type: [String]},
-  
+  features: { type: [String] },
+
   stripeProductId: { type: String },
   stripePriceId: { type: String },
   stripeProductName: { type: String },
   stripePricingModel: { type: String, enum: ['flat_rate', 'tiered'], default: 'flat_rate' },
   productImageUrl: { type: String },
-  
+
   isActive: { type: Boolean, default: true },
   isArchived: { type: Boolean, default: false },
-  
+
   metadata: { type: mongoose.Schema.Types.Mixed },    // For any additional info
 
   currency: { type: String },
