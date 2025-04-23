@@ -1,16 +1,21 @@
+const { ref } = require("joi");
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Schema.Types;
 
 
 const invoiceSchema = new mongoose.Schema({
   userId: { type: ObjectId, ref: 'User' },
+  bookingId: { type: ObjectId, ref: 'Booking' },
+  subscriptionId: { type: ObjectId, ref: 'Subscription' },
+  paymentId: { type: ObjectId, ref: 'Payment' },
+
   stripeInvoiceId: { type: String },
   stripeSubscriptionId: { type: String },
   customerEmail: { type: String },
 
   amountPaid: { type: Number },
   currency: { type: String },
-  status: { type: String },
+  status: { type: String, default: 'pending' },
 
   invoicePdf: { type: String },
   hostedInvoiceUrl: { type: String },
@@ -40,5 +45,6 @@ const invoiceSchema = new mongoose.Schema({
 });
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);
+
 
 module.exports.Invoice = Invoice;

@@ -394,7 +394,7 @@
       if (result.statusCode === 200) {
         alert(`Subscription successful! Subscription ID: ${result.data.subscriptionId}`);
         localStorage.setItem("subscriptionId", result.data.subscriptionId);
-        setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
+        setTimeout(() => { window.location.href = '/dashboard'; }, 10000);
       } else {
         alert("Something went wrong!");
         submitBtn.disabled = false;

@@ -15,28 +15,36 @@ const paymentSchema = new mongoose.Schema({
   amountInSubUnits: { type: Number, default: 0 },         // paise
   currency: { type: String, default: "inr" },
 
-  status: {
-    type: String,
-    enum: [
-      // paymentIntent status
-      'requires_payment_method', 'requires_confirmation', 'requires_action', 'processing', 'requires_capture', 'canceled', 'succeeded',
-
-      // subscription status
-      'incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'unpaid', 'canceled', 'paused'
-    ],
-    default: 'requires_payment_method'
-  },
-  isPaid: { type: Boolean, default: false },
-
-  paymentFor: { type: String, enum: ['booking', 'subscription'] },
-  receiptUrl: { type: String, default: "" },
-
   type: { type: String, enum: ['card', 'upi', 'net_banking'] },
   brand: { type: String, enum: ['visa', 'mastercard', 'rupay'] },
   last4: { type: String },
   expMonth: { type: Number },
   expYear: { type: Number },
 
+  status: {
+    type: String,
+    // enum: [
+    //   // paymentIntent status
+    //   'requires_payment_method', 'requires_confirmation', 'requires_action', 'processing', 'requires_capture', 'canceled', 'succeeded',
+
+    //   // subscription status
+    //   'incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'unpaid', 'canceled', 'paused'
+    // ],
+    default: 'pending'
+  },
+  isPaid: { type: Boolean, default: false },
+
+  paymentFor: { type: String, enum: ['booking', 'subscription'] },
+  receiptUrl: { type: String, default: "" },
+
+  refundStatus: { type: String, enum: ['refundPending', 'refunded', 'noRefund', 'failed'], default: 'noRefund' },
+  isRefunded: { type: Boolean, default: false },
+  refundId: { type: String, default: "" },            // Stripe refund ID
+  refundedAmount: { type: Number, default: 0 },       // In paise
+  refundReason: { type: String, default: "" },
+  refundDate: { type: Date, default: null },
+
+  
   insertDate: {
     type: Number,
     default: () => {
@@ -45,7 +53,7 @@ const paymentSchema = new mongoose.Schema({
   },
   creationDate: {
     type: Date,
-    default: Date.now       // internally it also become = new Date(Date.now())   // // .getTime() when  timestamp like :  Math.round(new Date(createdAt).getTime() / 1000)
+    default: Date.now                           // internally it also become = new Date(Date.now())   // // .getTime() when  timestamp like :  Math.round(new Date(createdAt).getTime() / 1000)
   },
   lastUpdatedDate: {
     type: Number,

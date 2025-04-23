@@ -16,6 +16,10 @@ const webhookSchema = new mongoose.Schema({
     default: () => {
       return Math.round(new Date() / 1000);
     }
+  },
+  displayDate: {
+    type: String,
+    default: () => new Date().toString()
   }
 });
 

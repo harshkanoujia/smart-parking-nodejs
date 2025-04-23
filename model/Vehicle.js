@@ -24,7 +24,7 @@ const vehicleSchema = new mongoose.Schema({
     }
   },
   creationDate: {
-    type: String,
+    type: Date,
     default: () => {
       return new Date();
     }
@@ -34,6 +34,10 @@ const vehicleSchema = new mongoose.Schema({
     default: () => {
       return Math.round(new Date() / 1000);
     }
+  },
+  displayDate: {
+    type: String,
+    default: () => new Date().toString()
   }
 });
 

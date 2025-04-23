@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 
 // Parking Area Schema
-const ParkingArea = mongoose.model('ParkingArea', new mongoose.Schema({
+const parkingAreaSchema = new mongoose.Schema({
   ownerId: { type: mongoose.Types.ObjectId },
   parkingAreaName: { type: String, trim: true },
   allowedVehicle: { type: [String], enum: ['bike', 'car', 'truck', 'bus'] },
@@ -29,7 +29,7 @@ const ParkingArea = mongoose.model('ParkingArea', new mongoose.Schema({
     }
   },
   creationDate: {
-    type: String,
+    type: Date,
     default: () => {
       return new Date();
     }
@@ -39,8 +39,14 @@ const ParkingArea = mongoose.model('ParkingArea', new mongoose.Schema({
     default: () => {
       return Math.round(new Date() / 1000);
     }
+  },
+  displayDate: {
+    type: String,
+    default: () => new Date().toString()
   }
-}))
+});
+
+const ParkingArea = mongoose.model('ParkingArea', parkingAreaSchema);
 
 
 // Parking Area Create

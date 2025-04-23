@@ -37,7 +37,7 @@ const managerSchema = new mongoose.Schema({
     }
   },
   creationDate: {
-    type: String,
+    type: Date,
     default: () => {
       return new Date();
     }
@@ -48,8 +48,12 @@ const managerSchema = new mongoose.Schema({
       return Math.round(new Date() / 1000);
     }
   },
+  displayDate: {
+    type: String,
+    default: () => new Date().toString()
+  },
 
-  deleteDate: { type: Number, default: -1 },
+  deletedAt: { type: Number, default: null },
   deletedBy: { type: mongoose.Schema.Types.ObjectId, default: null },
   deletedByRole: { type: String, default: "" },
   isDeleted: { type: Boolean, default: false }

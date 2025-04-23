@@ -11,15 +11,17 @@ const bookingSchema = new mongoose.Schema({
   daysInSec: { type: Number, default: null },
   hoursInSec: { type: Number, default: null },
 
-  status: { type: String, enum: ["pending", "cancelled", "completed", "booked"], default: "pending" },
+  status: { type: String, enum: ["pending", "cancelled", "completed", "booked", "failed"], default: "pending" },
 
   paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
-  isPaid: { type: Boolean, default: false },
   transactionStatus: { type: String, enum: ["pending", "completed", "failure", "inProgress"], default: "pending" },
-  refundStatus: { type: String, enum: ["refundPending", "refunded", "noRefund", "failed"], default: "noRefund" },
 
   cancellationTime: { type: Number },
-  canceledBy: { type: String, enum: ['user', 'admin', 'manager'] },
+  canceledByRole: { type: String, enum: ['user', 'admin', 'manager'] },
+  canceledBy: { type: mongoose.Schema.Types.ObjectId },
+
+  bookingEndAt: { type: Number },
+  isBookingEnd: { type: Boolean, default: false },
 
   insertDate: {
     type: Number,

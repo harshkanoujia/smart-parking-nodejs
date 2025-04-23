@@ -14,6 +14,7 @@ const booking = require('../routes/bookings');
 const parkingArea = require('../routes/parkingAreas');
 const parkingSlot = require('../routes/parkingSlots');
 const payment = require("../routes/payments");
+const servicePlan = require("../routes/servicePlans");
 const subscribe = require("../routes/subscriptions");
 const stripeWebhook = require('../routes/webhooks');
 
@@ -40,6 +41,7 @@ module.exports = function (app) {
   app.use('/api/parking-areas', parkingArea);
   app.use('/api/parking-slots', parkingSlot);
   app.use('/api/payments', payment);
+  app.use('/api/service-plans', servicePlan);
   app.use('/api/subscriptions', subscribe);
   
   app.use(error);

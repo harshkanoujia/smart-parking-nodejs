@@ -183,6 +183,7 @@ async function createSubscriptionPlan(customerId, priceId, paymentMethodId, user
     finalResponse.message = "Success";
     finalResponse.data = {
       subscriptionId: subscription.id,
+      subscription: subscription,
       // client_secret: client_secret
     };
   } catch (ex) {

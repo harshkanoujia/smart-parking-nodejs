@@ -17,8 +17,8 @@ router.post('/create-product', identityManager(['admin']), async (req, res) => {
 
   if (req.body.priceInRupee <= 50) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: SUBSCRIPTION_CONSTANTS.INVALID_AMOUNT } });
 
-  const subscription = await ServicePlan.findOne({ plan: req.body.plan });
-  if (subscription) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: SUBSCRIPTION_CONSTANTS.PLAN_EXIST } });
+  const servicePlan = await ServicePlan.findOne({ plan: req.body.plan });
+  if (servicePlan) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: SUBSCRIPTION_CONSTANTS.PLAN_EXIST } });
 
   let { plan, name, description } = req.body;
   let amount = req.body.priceInRupee * 100;
@@ -26,9 +26,9 @@ router.post('/create-product', identityManager(['admin']), async (req, res) => {
 
   const stripeResponse = await createProductAndPrice(name, description, currency, amount);
   if (stripeResponse.statusCode != 200) return res.status(400).json({ apiId: req.apiId, message: "Failure", data: { msg: stripeResponse.data } });
-  console.log(stripeResponse);
+  console.log("stripeResponse", stripeResponse);
 
-  subscription = new ServicePlan({
+  servicePlan = new ServicePlan({
     plan: plan,
     name: stripeResponse.data.product.name,
     description: stripeResponse.data.product.description,
@@ -40,10 +40,10 @@ router.post('/create-product', identityManager(['admin']), async (req, res) => {
     interval: stripeResponse.data.price.recurring.interval
   });
 
-  subscription.createdBy = req.userData.id;
-  await subscription.save();
+  servicePlan.createdBy = req.userData.id;
+  await servicePlan.save();
 
-  const response = _.pick(subscription, [
+  const response = _.pick(servicePlan, [
     "stripeProductId",
     "stripePriceId",
     "plan",
@@ -64,3 +64,6 @@ router.post('/create-product', identityManager(['admin']), async (req, res) => {
   });
 
 });
+
+
+module.exports = router;
