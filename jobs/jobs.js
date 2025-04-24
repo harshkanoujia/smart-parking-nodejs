@@ -17,7 +17,7 @@ async function setCompletedStatusForOldBookings() {
       break;
     }
     // await Booking.updateMany({ bookingEndAt: { $gte: currentEpoch }, status: 'booked', transactionStatus: 'completed' }, { $set: { status: "completed" } });
-    await Booking.updateOne({ _id: booking._id }, { $set: { status: "completed", isBookingEnd: true } });
+    await Booking.updateOne({ _id: booking._id }, { $set: { status: "overTime", isBookingEnd: true, bookingEndBy: "system" } });   //  // and notification to user that booking over and now overcharge 
 
     const area = await ParkingArea.findById(booking.parkingAreaId).lean();
     if (!area) {
@@ -36,7 +36,7 @@ async function setCompletedStatusForOldBookings() {
       }
     );
 
-    console.log("\n Successfully marked expired bookings as completed.");
+    console.log("* Successfully marked expired bookings as completed. *");
   }
 
   console.log("[Scheduler End] Completed Expired Booking Check. \n");
@@ -45,7 +45,7 @@ async function setCompletedStatusForOldBookings() {
 
 async function setFailedStatusForPendingBookings() {
 
-  console.log("[Scheduler Start] Running ** Pending ** Booking Check - Every Min");
+  console.log("[Scheduler Start] Running * Pending * Booking Check - Every Min");
 
   while (true) {
     const booking = await Booking.findOne({ status: 'pending', transactionStatus: { $ne: 'completed' } }).lean();
@@ -54,7 +54,7 @@ async function setFailedStatusForPendingBookings() {
       break;
     }
 
-    await Booking.updateOne({ _id: booking._id }, { $set: { status: "failed", isBookingEnd: true } });
+    await Booking.updateOne({ _id: booking._id }, { $set: { status: "failed", isBookingEnd: true, bookingEndBy: "system" } });
 
     const area = await ParkingArea.findById(booking.parkingAreaId).lean();
     if (!area) {
@@ -75,7 +75,7 @@ async function setFailedStatusForPendingBookings() {
 
     await User.updateOne({ _id: booking.userId }, { $inc: { totalBookings: -1 } });
 
-    console.log("\n Successfully marked pending bookings as failed.");
+    console.log("* Successfully marked pending bookings as failed. *");
   }
 
   console.log("[Scheduler End] Completed Pending Booking Check. \n");

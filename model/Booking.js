@@ -11,17 +11,21 @@ const bookingSchema = new mongoose.Schema({
   daysInSec: { type: Number, default: null },
   hoursInSec: { type: Number, default: null },
 
-  status: { type: String, enum: ["pending", "cancelled", "completed", "booked", "failed"], default: "pending" },
+  status: { type: String, enum: ["pending", "cancelled", "completed", "booked", "failed", "overTime" ], default: "pending" },
 
   paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
   transactionStatus: { type: String, enum: ["pending", "completed", "failure", "inProgress"], default: "pending" },
 
   cancellationTime: { type: Number },
-  canceledByRole: { type: String, enum: ['user', 'admin', 'manager'] },
   canceledBy: { type: mongoose.Schema.Types.ObjectId },
-
+  
   bookingEndAt: { type: Number },
   isBookingEnd: { type: Boolean, default: false },
+  bookingEndBy: { type: String, enum: ['user', 'system'] },
+
+
+  completedAt: { type: Number },    // when user successfully free the slot and get vehicle out of the parking
+  overchargePaymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
 
   insertDate: {
     type: Number,
