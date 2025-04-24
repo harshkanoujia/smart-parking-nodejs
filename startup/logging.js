@@ -40,23 +40,24 @@ module.exports = function () {
     exitOnError: true,
   });
 
-
+  // when error does not caught in try-catch or middleware and then this event trigger
   process.on("uncaughtException", (err) => {
 
     winston.error("uncaughtException :", errorLog(err));
     console.error(errorLog(err));
 
-    fs.appendFileSync("logs/uncaughtExceptions.log", JSON.stringify(errorLog) + "\n");
+    fs.appendFileSync("logs/uncaughtExceptions.log", JSON.stringify(errorLog(err)) + "\n");
     process.exit(1);
-    
+
   });
 
+  // when a Promise gets rejected but there no .catch() written to handle it, the unhandledRejection event is triggered.
   process.on("unhandledRejection", (err) => {
 
     winston.error('unhandledRejection :', errorLog(err));
     console.error(errorLog(err));
 
-    fs.appendFileSync("logs/unhandledRejections.log", JSON.stringify(rejectLog) + "\n");
+    fs.appendFileSync("logs/unhandledRejections.log", JSON.stringify(errorLog(err)) + "\n");
     process.exit(1);
 
     // throw err;  // already log
