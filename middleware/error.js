@@ -6,13 +6,19 @@ module.exports = function (err, req, res, next) {
 
   winston.error({ message: err.message, stack: err.stack });
 
-  if (err.name === 'ValidationError')
-    return res.status(400).json({ apiId: req.apiId, statusCode: 400, success: 'Failure', message: 'Validation failed', error: err.message });
+  console.log({
+    name: err.name,
+    message: err.message,
+    reason: (err.reason && typeof err.reason === 'string') ? err.reason.split('\n')[0] : 'Unknown error',
+    stack: err.stack.split('\n').splice(1),
+  });
 
-  if (err.code === 11000)
-    return res.status(400).json({ apiId: req.apiId, statusCode: 400, success: 'Failure', message: 'Duplicate Data not allowed', error: err.message });
 
-  console.log(`Error msg : ${err.message} \n`);
+  if (err.name === 'ValidationError')     // when we add { required: true } in schema
+    return res.status(400).json({ apiId: req.apiId, statusCode: 400, success: 'Failure', message: 'Validation failed', data: { msg: err.message } });
+
+  if (err.code === 11000)                 // for duplicate
+    return res.status(400).json({ apiId: req.apiId, statusCode: 400, success: 'Failure', message: 'Duplicate Data not allowed', data: { msg: err.message } });
 
   res.errorMessage = err.message;
 
