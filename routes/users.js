@@ -297,13 +297,4 @@ router.delete('/:id', identityManager(['admin', 'user']), async (req, res) => {
 });
 
 
-// ********** Premium **********
-
-// let currentPlan = "premium"; res.render("subscription", { currentPlan }) 
-
-router.post('/premium', identityManager(['admin', 'user']), async (req, res) => {
-
-});
-
-
 module.exports = router;
