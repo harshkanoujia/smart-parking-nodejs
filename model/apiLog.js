@@ -29,10 +29,14 @@ const apiLogSchema = new mongoose.Schema({
     }
   },
   creationDate: {
-    type: String,
+    type: Date,
     default: () => {
       return new Date();
     }
+  },
+  displayDate: {
+    type: String,
+    default: () => new Date().toString()
   }
 });
 

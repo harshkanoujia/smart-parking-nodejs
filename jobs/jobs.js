@@ -6,7 +6,7 @@ const { User } = require("../model/User");
 
 
 async function setCompletedStatusForOldBookings() {
-  console.log("[Scheduler Start] Running ** Expired ** Booking Check - Every Min");
+  console.log("\n[Scheduler Start] Running ** Expired ** Booking Check - Every Min");
 
   const currentEpoch = Math.round(new Date() / 1000);
 
@@ -45,7 +45,7 @@ async function setCompletedStatusForOldBookings() {
 
 async function setFailedStatusForPendingBookings() {
 
-  console.log("[Scheduler Start] Running * Pending * Booking Check - Every Min");
+  console.log("\n[Scheduler Start] Running * Pending * Booking Check - Every Min");
 
   while (true) {
     const booking = await Booking.findOne({ status: 'pending', transactionStatus: { $ne: 'completed' } }).lean();
