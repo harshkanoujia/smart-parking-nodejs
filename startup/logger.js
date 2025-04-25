@@ -14,7 +14,6 @@ module.exports = function (req, res, next) {
     body: req.body,
   });
 
-  // cleanup() remove event listener 
   const cleanup = () => {
     res.removeListener('finish', loggerFunction);
     res.removeListener('close', loggerFunction);
@@ -22,51 +21,42 @@ module.exports = function (req, res, next) {
   }
 
   // manually stored base URL because it changes when error occur
-  let completeUrl = req.originalUrl.split("?")[0];              // Remove query params
-  let urlSegments = completeUrl.split("/").filter(Boolean);     // Remove empty strings
+  let completeUrl = req.originalUrl.split("?")[0];              // remove query params
+  let urlSegments = completeUrl.split("/").filter(Boolean);     // remove empty strings
 
-  // Base URL logic to handle nested and simple routes
-  let baseUrl = urlSegments.length > 2 ? "/" + urlSegments.slice(0, urlSegments.length - 1).join("/") : completeUrl;
+  let baseUrl = urlSegments.length > 2 ? "/" + urlSegments.slice(0, urlSegments.length - 1).join("/") : completeUrl;    // remove the last segment for baseUrl
+
 
   // api req save in db when res complete 
   const loggerFunction = async () => {
     cleanup();
-    // console.log("Before logging : ", res.req.apiId)    
 
     try {
-      // console.log("REQUEST ===> ", req)     // IncomingMessage
-      // console.log("RESPONSE ===> ", res)    // ServerResponse
-
       if (res.req.apiId) {
         let endTime = new Date();
         let responseTimeInMilli = endTime - req.startTime;
 
-        let email, role, url;
+        let email, role;
 
         if (req.jwtData) {
           email = req.jwtData.email;
           role = req.jwtData.role;
         }
 
-        // Clean baseUrl and completeUrl
-        baseUrl = baseUrl !== '/' ? baseUrl.replace(/\/+$/, '') : baseUrl;      // because there is '/' is extra 
-        let completeUrl = req.originalUrl.replace(/\/+$/, '');
-        
-        let tPath = req.route ? req.route.path : "";
+        baseUrl = baseUrl !== '/' ? baseUrl.replace(/\/+$/, '') : baseUrl;      // remove trailing slashes
+        completeUrl = req.originalUrl.replace(/\/+$/, '');
 
-        if (!tPath || tPath === '/') {
-          url = baseUrl;                  // Don't add trailing slash
-        } else {
-          url = (baseUrl + '/' + tPath).replace(/\/+/g, '/');         // remove the slash
-        }
+        let url = completeUrl.replace(baseUrl, '');           // removes the baseUrl part from the completeUrl
+        url = url.split('?')[0];                              // remove query params if present
+
 
         await logApis(
           req.apiId,
           req.method,
           req.reqUserId,
-          completeUrl,             // req.originalUrl,    // completeurl
-          url,                     // baseUrl + tPath,    // url
-          baseUrl,                 // base url
+          completeUrl,               // completeurl
+          url,                       // url   // endpoint only
+          baseUrl,                   // base url
           req.query,
           req.params,
           email,
@@ -99,11 +89,13 @@ module.exports = function (req, res, next) {
 async function logApis(apiId, method, userId, completeUrl, url, baseUrl, query, params, email, role, body, startTime, endTime, responseTimeInMilli, statusCode, errorMessage) {
 
   if (body.password) {
-    let password = "";
-    for (i = 0; i < body.password.length; i++) {
-      password += "*";
-    }
-    body.password = password;
+    // let password = "";
+    // for (i = 0; i < body.password.length; i++) {
+    //   password += "*";
+    // }
+    // body.password = password;
+
+    body.password = body.password.replace(/./g, '*');     // Replace password characters with '*' for privacy "." it covers all num.char,symb at global level
   }
 
   let apiLog = new ApiLog({
