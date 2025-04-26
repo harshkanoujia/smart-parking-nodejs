@@ -1,11 +1,12 @@
 {
   "name": "parking_management_software",
   "version": "1.0.0",
-  "description": "A Node.js-based Parking Management System for tracking parking slots, vehicle entries, and booking and Manage users.",
+  "description": "A Node.js-based Parking Management System for tracking parking slots, vehicle entries, payments, subscriptions and booking and Manage users.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index"
+    "start": "node index",
+    "swagger": "node ./startup/swagger.js"
   },
   "engines": {
     "node": ">=22.14.0",
@@ -15,7 +16,7 @@
     "type": "git",
     "url": "https://github.com/Harshkanoujia/Parking-Management-Software.git"
   },
-  "author": "Harsh",
+  "author": "harsh",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -33,6 +34,8 @@
     "mongoose": "^8.9.3",
     "node-cron": "^3.0.3",
     "stripe": "^18.0.0",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1",
     "winston": "^3.17.0"
   }
 }
