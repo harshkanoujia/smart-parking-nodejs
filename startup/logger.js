@@ -48,7 +48,7 @@ module.exports = function (req, res, next) {
 
         let url = completeUrl.replace(baseUrl, '');           // removes the baseUrl part from the completeUrl
         url = url.split('?')[0];                              // remove query params if present
-
+        url = url === '' ? '/' : url;
 
         await logApis(
           req.apiId,
@@ -88,15 +88,7 @@ module.exports = function (req, res, next) {
 // save api request in apiLog db  
 async function logApis(apiId, method, userId, completeUrl, url, baseUrl, query, params, email, role, body, startTime, endTime, responseTimeInMilli, statusCode, errorMessage) {
 
-  if (body.password) {
-    // let password = "";
-    // for (i = 0; i < body.password.length; i++) {
-    //   password += "*";
-    // }
-    // body.password = password;
-
-    body.password = body.password.replace(/./g, '*');     // Replace password characters with '*' for privacy "." it covers all num.char,symb at global level
-  }
+  if (body.password) body.password = body.password.replace(/./g, '*');     // Replace password characters with '*' for privacy "." it covers all num.char,symb at global level
 
   let apiLog = new ApiLog({
     apiId,

@@ -4,6 +4,10 @@
 	"dbMlab": "devApp_dbMlab_string",
 	"jwtPrivateKey": "devApp_jwtPrivateKey",
 	"bcryptSalt": "devApp_bcryptSalt",
-	"STRIPE_SECRET_KEY": "your_stripe_sk_test",
-	"STRIPE_PUBLISHABLE_KEY": "your_stripe_pk_test"
+	"api_host": "localhost:3000",
+	"api_domain": "http://localhost:3000",
+
+	"STRIPE_SECRET_KEY": "stripe_sk_test",
+	"STRIPE_PUBLISHABLE_KEY": "stripe_pk_test",
+	"STRIPE_WEBHOOK_SIGNING_SECRET": "stripe_webhook_signing_secret"
 }
