@@ -82,12 +82,13 @@ const AUTH_CONSTANTS = {
 const BOOKING_CONSTANTS = {
   INVALID_USER: INVALID_USER,
   SLOT_NOT_AVALIABLE: "Oh Sorry !. There is no slot left now in this area",
-  INVALID_BOOKING: "booking with given Id not found.",
-  CANCEL_SUBMIT_SUCCESS: "Booking Cancelled Successfully.",
-  SUBMIT_SUCCESS: "Booking Created Successfully.",
+  INVALID_ID: "Booking Id not found !.",
+  CANCEL_SUBMIT_SUCCESS: "Your booking has been cancelled.",
+  SUBMIT_SUCCESS: "Your booking has been confirmed. You may now park your vehicle.",
   INVALID_VEHICLE_USER: "Your Vehicle is not allowed in this Parking. !Choose Different area.",
-  INVALID_AMOUNT: "Invalid Amount !. Amount must be greater then 50 Ruppee.",
-  INVALID_TOTOL_AMOUNT: "Error while calculating the total amount !. Try again later."
+  ALREADY_COMPLETE: "Invalid Request !. Booking already Completed",
+  INVALID_REQUEST: 'Invalid Request !.',
+  COMPLETE_SUBMIT_SUCCESS: "Your booking has been completed. You may now exit with your vehicle. "
 };
 
 const PARK_AREA_CONSTANTS = {
@@ -118,6 +119,12 @@ const SUBSCRIPTION_CONSTANTS = {
   SUBSCRIPTION_NOT_FOUND: "The Subscription you want to Subscribe. Not Found !"
 }
 
+const PAYMENT_CONSTANT = {
+  INVALID_ID: 'Payment Method Id not found !.',
+  FAILED: "Payment failed !. There is some issue while payment. Try again.",
+  INVALID_AMOUNT: "Invalid Amount !. Amount must be greater then 50 Ruppee.",
+  INVALID_TOTOL_AMOUNT: "Error while calculating the total amount !. Try again later.",
+}
 
 module.exports = {
   ADMIN_CONSTANTS,
@@ -128,5 +135,6 @@ module.exports = {
   PARK_AREA_CONSTANTS,
   PARK_AREA_SLOT_CONSTANTS,
   VEHICLE_CONSTANTS,
-  SUBSCRIPTION_CONSTANTS
+  SUBSCRIPTION_CONSTANTS,
+  PAYMENT_CONSTANT
 }

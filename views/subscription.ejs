@@ -273,6 +273,8 @@
         return window.location.href = '/login';
       }
 
+      if (!confirm("Are you sure you want to log out?")) return;
+
       fetch('/api/auth/user/logout', {
         method: 'POST',
         headers: {

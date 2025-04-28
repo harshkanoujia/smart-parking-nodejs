@@ -47,10 +47,19 @@ router.get('/', identityManager(['admin', 'manager', 'user']), async (req, res) 
         insertDate: 0,
         lastUpdatedDate: 0
       }
+    },
+    {
+      $facet: {
+        allDocs: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
+        paginatedDocs: [{ $skip: skipVal }, { $limit: limit }]
+      }
     }
   ]);
 
-  res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Success', data: { area: area } });
+  let totalCount = area[0].allDocs.length > 0 ? area[0].allDocs[0].totalCount : 0;
+  let areaList = area[0].paginatedDocs;
+
+  res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Success', data: { totalCount, areaList } });
 });
 
 // create parking Area

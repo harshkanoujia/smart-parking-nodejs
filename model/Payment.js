@@ -35,6 +35,7 @@ const paymentSchema = new mongoose.Schema({
   isPaid: { type: Boolean, default: false },
 
   paymentFor: { type: String, enum: ['booking', 'subscription'] },
+  bookingType: { type: String, enum: ['initial', 'overCharge'] },
   receiptUrl: { type: String, default: "" },
 
   refundStatus: { type: String, enum: ['refundPending', 'refunded', 'noRefund', 'failed'], default: 'noRefund' },
@@ -44,7 +45,6 @@ const paymentSchema = new mongoose.Schema({
   refundReason: { type: String, default: "" },
   refundDate: { type: Date, default: null },
 
-  
   insertDate: {
     type: Number,
     default: () => {

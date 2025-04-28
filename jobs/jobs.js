@@ -1,40 +1,24 @@
+const { User } = require("../model/User");
 const { Booking } = require("../model/Booking");
 const { ParkingArea } = require("../model/ParkingArea");
 const { ParkingSlot } = require("../model/ParkingSlot");
-const { User } = require("../model/User");
 
 
-
-async function setCompletedStatusForOldBookings() {
+// notification sent to user that booking is end 
+async function notificationUserForBookingEnd() {
   console.log("\n[Scheduler Start] Running ** Expired ** Booking Check - Every Min");
 
   const currentEpoch = Math.round(new Date() / 1000);
 
+  // and notification to user that booking over and now overcharge
   while (true) {
     const booking = await Booking.findOne({ bookingEndAt: { $lte: currentEpoch }, status: 'booked', transactionStatus: 'completed' }).lean();
     if (!booking) {
       // console.log("No expired bookings found during this run !.");
       break;
     }
-    // await Booking.updateMany({ bookingEndAt: { $gte: currentEpoch }, status: 'booked', transactionStatus: 'completed' }, { $set: { status: "completed" } });
-    await Booking.updateOne({ _id: booking._id }, { $set: { status: "overTime", isBookingEnd: true, bookingEndBy: "system" } });   //  // and notification to user that booking over and now overcharge 
 
-    const area = await ParkingArea.findById(booking.parkingAreaId).lean();
-    if (!area) {
-      console.trace("Parking Area is not found ");
-      break;
-    };
-
-    await ParkingArea.updateOne({ _id: area._id }, { $inc: { remainingSlots: 1 } });
-
-    await ParkingSlot.updateOne(
-      { parkingAreaId: area._id, slotNo: booking.slotNo },
-      {
-        $set: {
-          vehicleId: null, bookedBy: null, isBooked: false, status: "free", bookingDate: null, bookingDisplayDate: null
-        }
-      }
-    );
+    await Booking.updateOne({ _id: booking._id }, { $set: { status: "overTime", isBookingEnd: true } });
 
     console.log("* Successfully marked expired bookings as completed. *");
   }
@@ -42,9 +26,8 @@ async function setCompletedStatusForOldBookings() {
   console.log("[Scheduler End] Completed Expired Booking Check. \n");
 }
 
-
+// change status for failed booking
 async function setFailedStatusForPendingBookings() {
-
   console.log("\n[Scheduler Start] Running * Pending * Booking Check - Every Min");
 
   while (true) {
@@ -54,7 +37,7 @@ async function setFailedStatusForPendingBookings() {
       break;
     }
 
-    await Booking.updateOne({ _id: booking._id }, { $set: { status: "failed", isBookingEnd: true, bookingEndBy: "system" } });
+    await Booking.updateOne({ _id: booking._id }, { $set: { status: "failed", isBookingEnd: true } });
 
     const area = await ParkingArea.findById(booking.parkingAreaId).lean();
     if (!area) {
@@ -62,17 +45,12 @@ async function setFailedStatusForPendingBookings() {
       break;
     };
 
-    await ParkingArea.updateOne({ _id: area._id }, { $inc: { remainingSlots: 1 } });
-
     await ParkingSlot.updateOne(
       { parkingAreaId: area._id, slotNo: booking.slotNo },
-      {
-        $set: {
-          vehicleId: null, bookedBy: null, isBooked: false, status: "free", bookingDate: null, bookingDisplayDate: null
-        }
-      }
+      { $set: { vehicleId: null, bookedBy: null, isBooked: false, status: "free", bookingDate: null, bookingDisplayDate: null } }
     );
 
+    await ParkingArea.updateOne({ _id: area._id }, { $inc: { remainingSlots: 1 } });
     await User.updateOne({ _id: booking.userId }, { $inc: { totalBookings: -1 } });
 
     console.log("* Successfully marked pending bookings as failed. *");
@@ -82,5 +60,5 @@ async function setFailedStatusForPendingBookings() {
 }
 
 
-module.exports.setCompletedStatusForOldBookings = setCompletedStatusForOldBookings;
+module.exports.notificationUserForBookingEnd = notificationUserForBookingEnd;
 module.exports.setFailedStatusForPendingBookings = setFailedStatusForPendingBookings;

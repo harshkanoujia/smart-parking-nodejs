@@ -1,11 +1,11 @@
-const config = require("config");                                                                                                                                                           //Configuration management library to fetch environment-specific configs (like port, DB URL, etc.).
+const config = require("config");
 const cron = require('node-cron');
 const winston = require("winston");
 const express = require('express');
 const app = express();
 
 const { Seed } = require("./startup/seed");
-const { setCompletedStatusForOldBookings, setFailedStatusForPendingBookings } = require("./jobs/jobs");
+const { setFailedStatusForPendingBookings, notificationUserForBookingEnd } = require("./jobs/jobs");
 
 
 app.set("view engine", "ejs");
@@ -47,5 +47,5 @@ app.listen(port, () => winston.info(`Server is listening on ${port}...`));
 setInterval(() => setFailedStatusForPendingBookings(), 60 * 1000);
 
 cron.schedule('* * * * *', async () => {              // '*/5 * * * *' (Every 5 minutes) or '* * * * * ' (Every min) if '5 * * * *' then run on every hour five min
-  await setCompletedStatusForOldBookings();
+  await notificationUserForBookingEnd();
 });
