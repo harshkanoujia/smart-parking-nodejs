@@ -36,50 +36,84 @@ router.get('/list', identityManager(['manager', 'admin', 'user']), async (req, r
   }
 
   criteria.status = req.query.status ? req.query.status : "allowed";
-  criteria.isVehicleAllow = true;
-
+  criteria.isVerified = true;
 
   const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
   const limitVal = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
 
-  const vehicle = await Vehicle.aggregate([
+
+  let list = await Vehicle.aggregate([
     {
-      $facet: {
-        value: [
-          { $match: criteria },
-          { $skip: skipVal },
-          { $limit: limitVal },
+      $match: criteria
+    },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: { $toObjectId: "$ownerId" } },
+        pipeline: [
           {
-            $project: {
-              _id: 0,
-              ownerId: 1,
-              vehicleType: 1,
-              vehicleBrand: 1,
-              modelNo: 1,
-              modelYear: 1,
-              status: 1,
-              insertDate: 1,
-              creationDate: 1,
-              lastUpdatedDate: 1
+            $match: {
+              $expr: { $eq: ["$_id", "$$userId"] }
             }
           }
         ],
-        totalVehicles: [
-          { $match: criteria },
-          { $count: "count" }
-        ]
+        as: "userData"
+      }
+    },
+    { $addFields: { isData: { $cond: [{ $gt: [{ $size: "$userData" }, 0] }, true, false] } } },
+    { $match: { isData: true } },
+    { $unwind: "$userData" },
+    {
+      $group: {
+        _id: "$ownerId",
+        fullName: { $first: "$userData.fullName" },
+        email: { $first: "$userData.email" },
+        mobile: { $first: "$userData.mobile" },
+        gender: { $first: "$userData.gender" },
+        profilePic: { $first: "$userData.profilePic" },
+        totalBookings: { $first: "$userData.totalBookings" },
+        userStatus: { $first: "$userData.status" },
+        city: { $first: "$userData.city" },
+        state: { $first: "$userData.state" },
+        country: { $first: "$userData.country" },
+        creationDate: { $first: "$userData.creationDate" },
+        totalVehicles: { $sum: 1 },
+        // vehicleDetails: { $push: "$$ROOT"}
+        vehicleDetails: {
+          $push: {
+            _id: "$_id",
+            vehicleType: "$vehicleType",
+            registrationNo: "$registrationNo",
+            modelYear: "$modelYear",
+            model: "$model",
+            vehicleBrand: "$vehicleBrand",
+            fuelType: "$fuelType",
+            color: "$color",
+            images: "$images",
+            vehicleStatus: "$status",
+            isVerified: "$isVerified",
+            insuranceValidTill: "$insuranceValidTill",
+            creationDate: "$creationDate"
+          }
+        }
+      }
+    },
+    {
+      $facet: {
+        allDocs: [{ $skip: skipVal }, { $limit: limitVal }, { $group: { _id: null, totalCount: { $sum: 1 } } }],
+        paginatedDocs: [{ $skip: skipVal }, { $limit: limitVal }]
       }
     }
   ]);
 
-  const value = vehicle.length === 0 ? [] : vehicle[0].value;
-  const totalVehicles = vehicle[0].totalVehicles.length === 0 ? 0 : vehicle[0].totalVehicles[0].count;
+  const totalUsers = list[0].allDocs.length === 0 ? 0 : list[0].allDocs[0].totalCount;
+  const vehicleList = list.length === 0 ? [] : list[0].paginatedDocs;
 
   return res.status(200).json({
     apiId: req.apiId,
     statusCode: 200,
     message: "Success",
-    data: { totalVehicles, vehicle: value }
+    data: { totalUsers, vehicleList }
   });
 });
 
@@ -111,10 +145,7 @@ router.post('/', identityManager(['manager', 'user']), async (req, res) => {
   vehicle.status = "allowed";
   vehicle.isVerified = true;
 
-  await User.updateOne(
-    { _id: req.userData._id },
-    { $set: { vehicles: vehicle.vehicleType } }
-  );
+  await User.updateOne({ _id: req.userData._id }, { $set: { vehicles: vehicle.vehicleType } });
 
   await vehicle.save();
 
@@ -134,7 +165,7 @@ router.post('/', identityManager(['manager', 'user']), async (req, res) => {
   ])
 
   res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Success', data: { msg: VEHICLE_CONSTANTS.NEW_VEHCILE, vehicle: response } });
-})
+});
 
 
 module.exports = router;

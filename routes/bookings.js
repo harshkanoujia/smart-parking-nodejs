@@ -12,134 +12,279 @@ const { ParkingSlot } = require('../model/ParkingSlot');
 const { identityManager } = require('../middleware/auth');
 const { calcTotalAmount } = require('../services/commonFunctions');
 const { createPaymentIntent } = require('../services/stripeFunctions');
-const { PARK_AREA_CONSTANTS, BOOKING_CONSTANTS, PARK_AREA_SLOT_CONSTANTS, PAYMENT_CONSTANT } = require('../config/constant');
 const { Booking, validateBookingCreate, validateBookingComplete } = require('../model/Booking');
+const { PARK_AREA_CONSTANTS, BOOKING_CONSTANTS, PARK_AREA_SLOT_CONSTANTS, PAYMENT_CONSTANT } = require('../config/constant');
 
 
 
 // users bookings
-router.get('/list', identityManager(['admin', 'manager']), async (req, res) => {
+router.get('/list', identityManager(['admin', 'user', 'manager']), async (req, res) => {
 
   // const booking = await Booking.find()//.populate('parkingAreaId').populate('vehicleId')           //.populate('userId')
 
-  const booking = await Booking.aggregate([
+  let criteria = {};
+
+  if (req.jwtData.role === "user") {
+    criteria.userId = req.userData._id
+
+  } else if (req.query.bookingId) {
+    if (!mongoose.Types.ObjectId.isValid(req.query.bookingId))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
+
+    criteria._id = new mongoose.Types.ObjectId(req.query.bookingId);
+  } else {
+    criteria = {};
+  }
+
+  if (req.query.vehicleId) {
+    if (!mongoose.Types.ObjectId.isValid(req.query.vehicleId))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
+
+    criteria.vehicleId = new mongoose.Types.ObjectId(req.query.vehicleId);
+  }
+
+  if (req.query.status) criteria.status = req.query.status;
+  else delete criteria.status;
+
+  criteria.transactionStatus = "completed";
+
+  const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
+  const limitVal = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
+
+
+  const list = await Booking.aggregate([
     {
-      $match: {}
+      $match: criteria
+    },
+    {
+      $skip: skipVal
+    },
+    {
+      $limit: limitVal
     },
     {
       $lookup: {
         from: 'users',
-        localField: 'userId',
-        foreignField: '_id',
-        as: 'UserDetails'
+        let: { userId: { $toObjectId: "$userId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$userId"] } } }],
+        as: "userData"
       }
-    },
-    {
-      $lookup: {
-        from: 'parkingareas',
-        localField: 'parkingAreaId',
-        foreignField: '_id',
-        as: 'ParkingDetails'
-      }
-    }
-  ])
-  if (booking.length === 0) return res.status(200).json({ msg: [] })
-
-  res.status(200).json({ "Bookings": booking })
-});
-
-// check user booking details with userId
-router.get('/user', identityManager(['admin', 'user', 'manager']), async (req, res) => {
-
-  if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
-    return res.status(400).json('It work')
-  }
-
-  const userBooking = await Booking.aggregate([
-    {
-      $match: {
-        userId: new mongoose.Types.ObjectId(req.query.userId),
-        status: { $ne: "complete" }
-      },
-
-    },
-    {
-      $sort: { spotNo: 1 }
-    },
-    {
-      $limit: 2
     },
     {
       $lookup: {
         from: "vehicles",
-        localField: "vehicleId",
-        foreignField: "_id",
-        as: "Vehicle",
-        pipeline: [
-          {
-            $lookup: {
-              from: "users",
-              localField: "ownerId",
-              foreignField: "_id",
-              as: "User Profile",
-            }
-          }
-        ]
+        let: { vehicleId: { $toObjectId: "$vehicleId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } }],
+        as: "vehicleData"
       }
     },
     {
       $lookup: {
         from: "parkingareas",
-        localField: "parkingAreaId",
-        foreignField: "_id",
-        as: "Parking Area",
-        pipeline: [
-          {
-            $lookup: {
-              from: 'admins',
-              localField: 'createdBy',
-              foreignField: '_id',
-              as: 'Owner',
-            },
-          },
-        ],
+        let: { parkingAreaId: { $toObjectId: "$parkingAreaId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$parkingAreaId"] } } }],
+        as: "areaData"
+      }
+    },
+    {
+      $lookup: {
+        from: "payments",
+        let: { paymentId: { $toObjectId: "$paymentId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$paymentId"] } } }],
+        as: "paymentData"
+      }
+    },
+    {
+      $addFields: {
+        user: { $arrayElemAt: ["$userData", 0] },
+        area: { $arrayElemAt: ["$areaData", 0] },
+        payment: { $arrayElemAt: ["$paymentData", 0] },
+        vehicle: { $arrayElemAt: ["$vehicleData", 0] },
+        // totalCount: { $sum: 1 }
+      }
+    },
+    {
+      $group: {
+        _id: "$userId",
+        // fullName: { $first: "$userData.fullName" },
+        // email: { $first: "$userData.email" },
+        //   mobile: { $first: "$userData.mobile" },
+        //   gender: { $first: "$userData.gender" },
+        //   profilePic: { $first: "$userData.profilePic" },
+        //   totalBookings: { $first: "$userData.totalBookings" },
+        //   userStatus: { $first: "$userData.status" },
+        //   city: { $first: "$userData.city" },
+        //   state: { $first: "$userData.state" },
+        //   country: { $first: "$userData.country" },
+        //   creationDate: { $first: "$userData.creationDate" },
+        //   isPremiumUser: { $first: "$userData.isPremiumUser" },
+        //   bookingDetials: {
+        //     $push: {
+        //       slotNo: "$slotNo"
+        //     }
+        //   },
+        bookings: { $push: "$$ROOT" },
+        // user: { $first: "$user" }
       }
     },
     {
       $project: {
+        totalBookings: { $size: "$bookings" },
+        // bookingData: 1,
+        // userData: 1,
+        // areaData: 1,
+        // vehicleData: 1,
+        // paymentData: 1
         _id: 0,
-        userId: 0,
-        vehicleId: 0,
-        parkingAreaId: 0,
-        status: 0,
-        "Parking Area.creationDate": 0,
-        "Parking Area._id": 0,
-        "Parking Area.Owner._id": 0,
-        "Parking Area.Owner.password": 0,
-        "Parking Area.Owner.creationDate": 0,
-        "Parking Area.Owner.token": 0,
-        "Vehicle._id": 0,
-        "Vehicle.creationDate": 0,
-        "Vehicle.ownerId": 0,
-        "Vehicle.User Profile._id": 0,
-        "Vehicle.User Profile.password": 0,
-        "Vehicle.User Profile.token": 0,
-        "Vehicle.User Profile.creationDate": 0,
-        "Vehicle.__v": 0,
-        "Vehicle.User Profile.__v": 0,
-        "Parking Area.__v": 0,
-        "Parking Area.Owner.__v": 0,
-        __v: 0,
+        fullName: "$user.fullName",
+        // days: "$days",
+        bookings: "$bookings",
+        // status: "$bookingData.status",
+        // isPaid: "$bookingData.isPaid",
+        // transactionStatus: "$bookingData.transactionStatus",
+        // createdAt: "$bookingData.createdAt",
+      }
+    },
+    {
+      $facet: {
+        allDocs: [{ $skip: skipVal }, { $limit: limitVal }, { $group: { _id: null, totalCount: { $sum: 1 } } }],
+        paginatedDocs: [{ $skip: skipVal }, { $limit: limitVal }]
       }
     }
   ])
-  if (!userBooking || userBooking.length === 0) return res.status(400).json({ statuscode: 400, message: "Faliure", data: { message: "UserId Not found" } })
 
-  return res.status(200).json({ statuscode: 200, message: "Success", data: { "The Active booking is ": userBooking } })
+  // const totalBookings = list[0].allDocs.length === 0 ? 0 : list[0].allDocs[0].totalCount;
+  const bookingList = list.length === 0 ? [] : list[0];
+
+  return res.status(200).json(({
+    apiId: req.apiId,
+    statusCode: 200,
+    message: 'Success',
+    data: { bookingList }
+  }));
+});
+
+// users bookings
+router.get('/list/v1', identityManager(['admin', 'user', 'manager']), async (req, res) => {
+
+  // const booking = await Booking.find()//.populate('parkingAreaId').populate('vehicleId')           //.populate('userId')
+
+  let criteria = {};
+
+  if (req.jwtData.role === "user") {
+    criteria.userId = req.userData._id
+
+  } else if (req.query.bookingId) {
+    if (!mongoose.Types.ObjectId.isValid(req.query.bookingId))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
+
+    criteria._id = new mongoose.Types.ObjectId(req.query.bookingId);
+  } else {
+    criteria = {};
+  }
+
+  if (req.query.vehicleId) {
+    if (!mongoose.Types.ObjectId.isValid(req.query.vehicleId))
+      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
+
+    criteria.vehicleId = new mongoose.Types.ObjectId(req.query.vehicleId);
+  }
+
+  if (req.query.status) criteria.status = req.query.status;
+  else delete criteria.status;
+
+  criteria.transactionStatus = "completed";
+
+  const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
+  const limitVal = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
+
+
+  const list = await Booking.aggregate([
+    {
+      $match: criteria
+    },
+    {
+      $skip: skipVal
+    },
+    {
+      $limit: limitVal
+    },
+    {
+      $lookup: {
+        from: 'users',
+        let: { userId: { $toObjectId: "$userId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$userId"] } } }],
+        as: "userData"
+      }
+    },
+    {
+      $lookup: {
+        from: "vehicles",
+        let: { vehicleId: { $toObjectId: "$vehicleId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } }],
+        as: "vehicleData"
+      }
+    },
+    {
+      $lookup: {
+        from: "parkingareas",
+        let: { parkingAreaId: { $toObjectId: "$parkingAreaId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$parkingAreaId"] } } }],
+        as: "areaData"
+      }
+    },
+    {
+      $lookup: {
+        from: "payments",
+        let: { paymentId: { $toObjectId: "$paymentId" } },
+        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$paymentId"] } } }],
+        as: "paymentData"
+      }
+    },
+    {
+      $group: {
+        _id: "$userId",
+        // fullName: { $first: "$userData.fullName" },
+        // email: { $first: "$userData.email" },
+        // mobile: { $first: "$userData.mobile" },
+        // gender: { $first: "$userData.gender" },
+        // profilePic: { $first: "$userData.profilePic" },
+        // totalBookings: { $first: "$userData.totalBookings" },
+        // userStatus: { $first: "$userData.status" },
+        // city: { $first: "$userData.city" },
+        // state: { $first: "$userData.state" },
+        // country: { $first: "$userData.country" },
+        // creationDate: { $first: "$userData.creationDate" },
+        // isPremiumUser: { $first: "$userData.isPremiumUser" },
+        // bookingDetials: {
+        //   $push: {
+        //     slotNo: "$slotNo"
+        //   }
+        // },
+        bookings: { $push: "$$ROOT" },
+      }
+    },
+    {
+      $facet: {
+        allDocs: [{ $skip: skipVal }, { $limit: limitVal }, { $group: { _id: null, totalCount: { $sum: 1 } } }],
+        paginatedDocs: [{ $skip: skipVal }, { $limit: limitVal }]
+      }
+    }
+  ])
+
+  // const totalBookings = list[0].allDocs.length === 0 ? 0 : list[0].allDocs[0].totalCount;
+  const bookingList = list.length === 0 ? [] : list[0];
+
+  return res.status(200).json(({
+    apiId: req.apiId,
+    statusCode: 200,
+    message: 'Success',
+    data: { bookingList }
+  }));
 });
 
 // check user booking details with userId with more details 
-router.get('/user/history', identityManager(['admin', 'user', 'manager']), async (req, res) => {
+router.get('/history', identityManager(['admin', 'user', 'manager']), async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
     return res.status(400).json({ statuscode: 400, message: "Faliure", data: { message: 'Invalid Id' } })
   }

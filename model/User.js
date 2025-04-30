@@ -35,18 +35,8 @@ const userSchema = new mongoose.Schema({
 
   vehicles: { type: [String] },
 
-  isPremium: { type: Boolean, default: false },
+  isPremiumUser: { type: Boolean, default: false },
   subscriptionStatus: { type: String, enum: ['free', 'premium'], default: 'free' },
-
-  subscription: {
-    planId: { type: String },                         // Stripe Price ID
-    subscriptionId: { type: String },                 // Stripe Subscription ID
-    stripeStatus: { type: String, enum: ['incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'unpaid', 'canceled'], default: 'incomplete' },
-    currentPeriodEnd: { type: Number },               // End date of current billing cycle
-    defaultPaymentMethod: { type: String },
-    startDate: { type: Number },
-    endDate: { type: Number },
-  },
 
   insertDate: {
     type: Number,
@@ -73,7 +63,7 @@ const userSchema = new mongoose.Schema({
 
   deletedAt: { type: Number, default: null },
   deletedBy: { type: mongoose.Schema.Types.ObjectId, default: null },
-  deletedByRole: { type: String, default: "" },
+  deletedByRole: { type: String, default: null },
   isDeleted: { type: Boolean, default: false }
 })
 
