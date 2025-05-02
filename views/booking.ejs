@@ -94,6 +94,12 @@
       background: #27ae60;
     }
 
+    #btnLoader {
+      font-size: 18px;
+      color: white;
+      vertical-align: middle;
+    }
+
     #card-element {
       padding: 12px;
       border: 1px solid #ccc;
@@ -186,8 +192,20 @@
     <h2>Book Your Parking Spot Now</h2>
     <form id="bookingForm">
       <!-- Parking Area ID -->
-      <label for="parkingAreaId">Parking Area ID</label>
-      <input type="text" name="parkingAreaId" id="parkingAreaId" required />
+      <!-- <label for="parkingAreaId">Parking Area ID</label>
+      <input type="text" name="parkingAreaId" id="parkingAreaId" required /> -->
+
+
+      <h2>Select Your Vehicle Type:</h2>
+      <select id="vehicleTypeSelect">
+        <option value="">-- Select Vehicle --</option>
+        <option value="car">Car</option>
+        <option value="bike">Bike</option>
+        <option value="activa">Activa</option>
+        <option value="truck">Truck</option>
+        <option value="bus">Bus</option>
+      </select>
+
 
       <!-- Duration -->
       <div class="row">
@@ -217,7 +235,11 @@
       <label>Card Information</label>
       <div id="card-element"></div>
 
-      <button type="submit">Book & Pay</button>
+      <button type="submit" id="submitBtn">
+        <span id="btnText">Book & Pay</span>
+        <i id="btnLoader" class="fas fa-spinner fa-spin" style="display:none;margin-left:8px;"></i>
+      </button>
+
       <p class="alert" id="errorMsg"></p>
     </form>
   </div>
@@ -291,10 +313,17 @@
 
     const form = document.getElementById('bookingForm');
     const errorMsg = document.getElementById('errorMsg');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnLoader = document.getElementById('btnLoader');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorMsg.textContent = '';
+
+      submitBtn.disabled = true;
+      btnText.style.display = 'none';
+      btnLoader.style.display = 'inline-block';
 
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
@@ -309,10 +338,11 @@
 
         if (error) {
           errorMsg.textContent = error.message;
+          resetButton();
           return;
         }
 
-        data.paymentMethod = paymentMethod.id;
+        data.paymentMethodId = paymentMethod.id;
 
         const res = await fetch('/api/bookings', {
           method: 'POST',
@@ -327,20 +357,31 @@
 
         if (res.status !== 201) {
           errorMsg.textContent = result.data.msg || result.message || 'Booking failed.';
+          resetButton();
           return;
         }
 
         alert('✅ Booking & Payment Successful!');
-        setTimeout(() => { window.location.href = '/dashboard'; }, 10000);
+        setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+
       } catch (err) {
         console.error(err);
         errorMsg.textContent = 'Something went wrong.';
+        resetButton();
       }
     });
 
+    // Helper function to reset button
+    function resetButton() {
+      submitBtn.disabled = false;
+      btnText.style.display = 'inline';
+      btnLoader.style.display = 'none';
+    }
 
     function logoutUser() {
       const token = localStorage.getItem('authToken');
+
+      if (!confirm("Are you sure you want to log out?")) return;
 
       fetch('/api/auth/user/logout', {
         method: 'POST',
@@ -349,9 +390,9 @@
         }
       })
         .then(res => {
-          localStorage.removeItem('authToken'); // Token clear
-          localStorage.removeItem('user');      // Optional
-          window.location.href = '/';           // Redirect
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/';
         })
         .catch(err => {
           console.error("Logout error:", err);

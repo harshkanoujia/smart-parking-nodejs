@@ -215,7 +215,7 @@
     async function getProfile() {
       const token = localStorage.getItem('authToken');
       if (!token) {
-        window.location.href = '/login'; 
+        window.location.href = '/login';
         return;
       }
       try {
@@ -305,6 +305,8 @@
     function logoutUser() {
       const token = localStorage.getItem('authToken');
 
+      if (!confirm("Are you sure you want to log out?")) return;
+
       fetch('/api/auth/user/logout', {
         method: 'POST',
         headers: {
@@ -312,9 +314,9 @@
         }
       })
         .then(res => {
-          localStorage.removeItem('authToken'); // Token clear
-          localStorage.removeItem('user');      // Optional
-          window.location.href = '/';           // Redirect
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/';
         })
         .catch(err => {
           console.error("Logout error:", err);

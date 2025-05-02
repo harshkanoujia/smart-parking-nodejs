@@ -195,6 +195,23 @@ async function createSubscriptionPlan(customerId, priceId, paymentMethodId, user
   return finalResponse;
 }
 
+// retrieve details
+async function getDetailsFromPaymentMethodId(paymentMethodId) {
+  let finalResponse = {};
+  try {
+    const response = await stripe.paymentMethods.retrieve(paymentMethodId);
+    finalResponse.statusCode = 200;
+    finalResponse.message = "Success";
+    finalResponse.data = response;
+    console.log(response)
+  } catch (Ex) {
+    finalResponse.statusCode = Ex.statusCode;
+    finalResponse.message = "Failure";
+    finalResponse.data = Ex.message;
+  }
+  return finalResponse;
+}
+
 // webhook for stripe response
 async function webhook(req, sig, webhookSecret) {
   let finalResponse = {};
@@ -222,3 +239,4 @@ module.exports.createProductAndPrice = createProductAndPrice;
 module.exports.createSubscriptionPlan = createSubscriptionPlan;
 module.exports.setAsDefaultPaymentMethod = setAsDefaultPaymentMethod;
 module.exports.linkPaymentMethodToCustomer = linkPaymentMethodToCustomer;
+module.exports.getDetailsFromPaymentMethodId = getDetailsFromPaymentMethodId;

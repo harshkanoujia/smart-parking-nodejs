@@ -112,11 +112,19 @@ router.post('/', async (req, res) => {
       await payments.save();
 
       if (payments.paymentFor === "booking") {
-        booking = await Booking.findOne({ paymentId: payments._id });
-        if (!booking) return console.log("Booking not found !");
-
-        booking.transactionStatus = "completed";
-        await booking.save();
+        if (payments.bookingType === "initial"){ 
+          booking = await Booking.findOne({ paymentId: payments._id });
+          if (!booking) return console.log("Booking not found !");
+  
+          booking.transactionStatus = "completed";
+          await booking.save();
+        } else {
+          booking = await Booking.findOne({ overchargePaymentId: payments._id });
+          if (!booking) return console.log("Booking not found !");
+  
+          booking.overChargeTransStatus = "completed";
+          await booking.save();
+        }
 
       } else {
         subscription = await Subscription.findOne({ paymentId: payments._id });
