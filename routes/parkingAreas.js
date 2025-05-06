@@ -10,13 +10,11 @@ const { ParkingArea, validateParkingArea } = require('../model/ParkingArea');
 
 
 // get area 
-router.get('/', identityManager(['admin', 'manager', 'user']), async (req, res) => {
+router.get('/list', identityManager(['admin', 'manager', 'user']), async (req, res) => {
 
   let criteria = {};
 
-  if (req.jwtData.role === "manager") {
-    criteria.ownerId = req.userData._id;
-  }
+  if (req.jwtData.role === "manager") criteria.ownerId = req.userData._id;
 
   if (req.query.id) {
     const area = await ParkingArea.findById(req.query.id);
@@ -25,25 +23,21 @@ router.get('/', identityManager(['admin', 'manager', 'user']), async (req, res) 
     criteria._id = area._id;
   }
 
+  if (req.query.vehicle) criteria.allowedVehicle = { $in: [req.query.vehicle] };
   if (req.query.status) criteria.status = req.query.status;
+
+  if (req.query.forBooking === "true") criteria.remainingSlots = { $gt: 0 };
 
   const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
   const limit = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
 
 
   const area = await ParkingArea.aggregate([
-    {
-      $match: criteria
-    },
-    {
-      $skip: skipVal
-    },
-    {
-      $limit: limit
-    },
+    { $match: criteria },
+    { $skip: skipVal },
+    { $limit: limit },
     {
       $project: {
-        _id: 0,
         insertDate: 0,
         lastUpdatedDate: 0
       }
@@ -57,7 +51,7 @@ router.get('/', identityManager(['admin', 'manager', 'user']), async (req, res) 
   ]);
 
   let totalCount = area[0].allDocs.length > 0 ? area[0].allDocs[0].totalCount : 0;
-  let areaList = area[0].paginatedDocs;
+  let areaList = area.length === 0 ? [] : area[0].paginatedDocs;
 
   res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Success', data: { totalCount, areaList } });
 });
@@ -123,4 +117,4 @@ router.post('/', identityManager(['admin', 'manager']), async (req, res) => {
 });
 
 
-module.exports = router; 
+module.exports = router;

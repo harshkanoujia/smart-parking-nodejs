@@ -54,16 +54,6 @@
       color: #2c3e50;
     }
 
-    input,
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
-
     label {
       font-weight: 600;
       display: block;
@@ -71,13 +61,36 @@
       color: #333;
     }
 
-    #parkingAreaId {
-      width: 96%;
-      margin-top: 10px;
-      padding: 10px;
+    select,
+    input,
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      font-size: 15px;
+      font-size: 16px;
+    }
+
+    select:focus,
+    input:focus,
+    button:focus {
+      outline: none;
+      border-color: #2ecc71;
+    }
+
+    select {
+      background-color: #fff;
+      color: #333;
+    }
+
+    #vehicleTypeSelect {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background: #f1f1f1 url('https://cdn.iconscout.com/icon/free/png-256/chevron-down-1810219-1533593.png') no-repeat;
+      background-position: right 10px center;
+      background-size: 12px;
     }
 
     button {
@@ -191,10 +204,8 @@
   <div class="container">
     <h2>Book Your Parking Spot Now</h2>
     <form id="bookingForm">
-      <!-- Parking Area ID -->
-      <!-- <label for="parkingAreaId">Parking Area ID</label>
-      <input type="text" name="parkingAreaId" id="parkingAreaId" required /> -->
 
+      <input type="hidden" name="parkingAreaId" id="parkingAreaId" />
 
       <h2>Select Your Vehicle Type:</h2>
       <select id="vehicleTypeSelect">
@@ -251,7 +262,36 @@
       window.location.href = '/login';
     }
 
-    const parkingAreaIdInput = document.querySelector('input[name="parkingAreaId"]');
+    const vehicleSelect = document.getElementById('vehicleTypeSelect');
+    let parkingAreaIdInput = document.getElementById('parkingAreaId');
+
+    vehicleSelect.addEventListener('change', async function () {
+      const vehicleType = this.value;
+
+      if (!vehicleType) {
+        parkingAreaIdInput.value = '';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/parking-areas/list?vehicle=${vehicleType}&forBooking=true`, {
+          headers: { Authorization: token }
+        });
+        const result = await res.json();
+
+        if (res.ok && result.data?.areaList[0]._id) {
+          parkingAreaIdInput.value = result.data.areaList[0]._id;
+          debouncedCalculateAmount(); // optional: re-trigger cost calc
+        } else {
+          parkingAreaIdInput.value = '';
+          alert('⚠️ No parking area found for this vehicle type.');
+        }
+      } catch (err) {
+        console.error('Error fetching parking area:', err);
+        parkingAreaIdInput.value = '';
+      }
+    });
+
     const daysInput = document.querySelector('input[name="days"]');
     const hoursInput = document.querySelector('input[name="hours"]');
     const amountDisplay = document.getElementById('amountDisplay');
@@ -399,7 +439,6 @@
           alert("Something went wrong.");
         });
     }
-
   </script>
 
   <div class="footer">
