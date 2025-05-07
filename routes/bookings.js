@@ -26,7 +26,6 @@ router.get('/list', identityManager(['admin', 'user', 'manager']), async (req, r
 
   if (req.jwtData.role === "user") {
     criteria.userId = req.userData._id
-
   } else if (req.query.bookingId) {
     if (!mongoose.Types.ObjectId.isValid(req.query.bookingId))
       return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
@@ -43,25 +42,17 @@ router.get('/list', identityManager(['admin', 'user', 'manager']), async (req, r
     criteria.vehicleId = new mongoose.Types.ObjectId(req.query.vehicleId);
   }
 
-  if (req.query.status) criteria.status = req.query.status;
-  else delete criteria.status;
-
-  criteria.transactionStatus = "completed";
+  criteria.status = req.query.status ? criteria.status : "booked";
+  // criteria.transactionStatus = "completed";
 
   const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
   const limitVal = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
 
 
   const list = await Booking.aggregate([
-    {
-      $match: criteria
-    },
-    {
-      $skip: skipVal
-    },
-    {
-      $limit: limitVal
-    },
+    { $match: criteria },
+    { $skip: skipVal },
+    { $limit: limitVal },
     {
       $lookup: {
         from: 'users',
@@ -100,67 +91,66 @@ router.get('/list', identityManager(['admin', 'user', 'manager']), async (req, r
         area: { $arrayElemAt: ["$areaData", 0] },
         payment: { $arrayElemAt: ["$paymentData", 0] },
         vehicle: { $arrayElemAt: ["$vehicleData", 0] },
-        // totalCount: { $sum: 1 }
       }
     },
     {
       $group: {
         _id: "$userId",
-        // fullName: { $first: "$userData.fullName" },
-        // email: { $first: "$userData.email" },
-        //   mobile: { $first: "$userData.mobile" },
-        //   gender: { $first: "$userData.gender" },
-        //   profilePic: { $first: "$userData.profilePic" },
-        //   totalBookings: { $first: "$userData.totalBookings" },
-        //   userStatus: { $first: "$userData.status" },
-        //   city: { $first: "$userData.city" },
-        //   state: { $first: "$userData.state" },
-        //   country: { $first: "$userData.country" },
-        //   creationDate: { $first: "$userData.creationDate" },
-        //   isPremiumUser: { $first: "$userData.isPremiumUser" },
-        //   bookingDetials: {
-        //     $push: {
-        //       slotNo: "$slotNo"
-        //     }
-        //   },
-        bookings: { $push: "$$ROOT" },
-        // user: { $first: "$user" }
+        fullName: { $first: "$user.fullName" },
+        email: { $first: "$user.email" },
+        mobile: { $first: "$user.mobile" },
+        gender: { $first: "$user.gender" },
+        profilePic: { $first: "$user.profilePic" },
+        totalBookings: { $first: "$user.totalBookings" },
+        userStatus: { $first: "$user.status" },
+        city: { $first: "$user.city" },
+        state: { $first: "$user.state" },
+        country: { $first: "$user.country" },
+        creationDate: { $first: "$user.creationDate" },
+        isPremiumUser: { $first: "$user.isPremiumUser" },
+        bookings: { $sum: 1 },
+        bookingDetails: {
+          $push: {
+            _id: "$_id",
+            slotNo: "$slotNo",
+            bookingStatus: "$status",
+            userId: "$userId",
+            vehicleId: "$vehicleId",
+            vehicleType: "$vehicle.vehicleType",
+            parkingAreaId: "$parkingAreaId",
+            parkingAreaName: "$area.parkingAreaName",
+            parkingCity: "$area.city",
+            paymentId: "$paymentId",
+            daysInSec: "$daysInSec",
+            hoursInSec: "$daysInSec",
+            bookingEndAt: "$bookingEndAt",
+            transactionStatus: "$transactionStatus",
+            completedAt: "$completedAt",
+            overchargePaymentId: "$overchargePaymentId",
+            overChargeTransStatus: "$overChargeTransStatus",
+            isOverChargeDone: "$isOverChargeDone",
+            creationDate: "$creationDate"
+          }
+        }
       }
     },
-    {
-      $project: {
-        totalBookings: { $size: "$bookings" },
-        // bookingData: 1,
-        // userData: 1,
-        // areaData: 1,
-        // vehicleData: 1,
-        // paymentData: 1
-        _id: 0,
-        fullName: "$user.fullName",
-        // days: "$days",
-        bookings: "$bookings",
-        // status: "$bookingData.status",
-        // isPaid: "$bookingData.isPaid",
-        // transactionStatus: "$bookingData.transactionStatus",
-        // createdAt: "$bookingData.createdAt",
-      }
-    },
+    { $project: { _id: 0 } },
     {
       $facet: {
         allDocs: [{ $skip: skipVal }, { $limit: limitVal }, { $group: { _id: null, totalCount: { $sum: 1 } } }],
         paginatedDocs: [{ $skip: skipVal }, { $limit: limitVal }]
       }
     }
-  ])
+  ]);
 
-  // const totalBookings = list[0].allDocs.length === 0 ? 0 : list[0].allDocs[0].totalCount;
-  const bookingList = list.length === 0 ? [] : list[0];
+  const totalBookings = list[0].allDocs.length === 0 ? 0 : list[0].allDocs[0].totalCount;
+  const bookingList = list.length === 0 ? [] : list[0].paginatedDocs;
 
   return res.status(200).json(({
     apiId: req.apiId,
     statusCode: 200,
     message: 'Success',
-    data: { bookingList }
+    data: { totalBookings, bookingList }
   }));
 });
 
