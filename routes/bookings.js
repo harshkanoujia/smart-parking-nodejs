@@ -154,135 +154,29 @@ router.get('/list', identityManager(['admin', 'user', 'manager']), async (req, r
   }));
 });
 
-// users bookings
-router.get('/list/v1', identityManager(['admin', 'user', 'manager']), async (req, res) => {
-
-  // const booking = await Booking.find()//.populate('parkingAreaId').populate('vehicleId')           //.populate('userId')
+// check user history
+router.get('/history', identityManager(['admin', 'user', 'manager']), async (req, res) => {
 
   let criteria = {};
 
   if (req.jwtData.role === "user") {
-    criteria.userId = req.userData._id
-
-  } else if (req.query.bookingId) {
-    if (!mongoose.Types.ObjectId.isValid(req.query.bookingId))
-      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
-
-    criteria._id = new mongoose.Types.ObjectId(req.query.bookingId);
+    criteria.userId = req.userData._id;
   } else {
-    criteria = {};
+    if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
+      return res.status(400).json({ apiId: req.apiId, statuscode: 400, message: "Faliure", data: { message: 'Invalid Id' } })
+    }
+
+    criteria.userId = req.query.userId;
   }
-
-  if (req.query.vehicleId) {
-    if (!mongoose.Types.ObjectId.isValid(req.query.vehicleId))
-      return res.status(400).json({ apiId: req.apiId, statusCode: 400, message: 'Failure', data: { msg: USER_CONSTANTS.INVALID_USER } });
-
-    criteria.vehicleId = new mongoose.Types.ObjectId(req.query.vehicleId);
-  }
-
-  if (req.query.status) criteria.status = req.query.status;
-  else delete criteria.status;
-
-  criteria.transactionStatus = "completed";
 
   const skipVal = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset);
   const limitVal = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
 
-
   const list = await Booking.aggregate([
-    {
-      $match: criteria
-    },
-    {
-      $skip: skipVal
-    },
-    {
-      $limit: limitVal
-    },
-    {
-      $lookup: {
-        from: 'users',
-        let: { userId: { $toObjectId: "$userId" } },
-        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$userId"] } } }],
-        as: "userData"
-      }
-    },
-    {
-      $lookup: {
-        from: "vehicles",
-        let: { vehicleId: { $toObjectId: "$vehicleId" } },
-        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } }],
-        as: "vehicleData"
-      }
-    },
-    {
-      $lookup: {
-        from: "parkingareas",
-        let: { parkingAreaId: { $toObjectId: "$parkingAreaId" } },
-        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$parkingAreaId"] } } }],
-        as: "areaData"
-      }
-    },
-    {
-      $lookup: {
-        from: "payments",
-        let: { paymentId: { $toObjectId: "$paymentId" } },
-        pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$paymentId"] } } }],
-        as: "paymentData"
-      }
-    },
-    {
-      $group: {
-        _id: "$userId",
-        // fullName: { $first: "$userData.fullName" },
-        // email: { $first: "$userData.email" },
-        // mobile: { $first: "$userData.mobile" },
-        // gender: { $first: "$userData.gender" },
-        // profilePic: { $first: "$userData.profilePic" },
-        // totalBookings: { $first: "$userData.totalBookings" },
-        // userStatus: { $first: "$userData.status" },
-        // city: { $first: "$userData.city" },
-        // state: { $first: "$userData.state" },
-        // country: { $first: "$userData.country" },
-        // creationDate: { $first: "$userData.creationDate" },
-        // isPremiumUser: { $first: "$userData.isPremiumUser" },
-        // bookingDetials: {
-        //   $push: {
-        //     slotNo: "$slotNo"
-        //   }
-        // },
-        bookings: { $push: "$$ROOT" },
-      }
-    },
-    {
-      $facet: {
-        allDocs: [{ $skip: skipVal }, { $limit: limitVal }, { $group: { _id: null, totalCount: { $sum: 1 } } }],
-        paginatedDocs: [{ $skip: skipVal }, { $limit: limitVal }]
-      }
-    }
-  ])
-
-  // const totalBookings = list[0].allDocs.length === 0 ? 0 : list[0].allDocs[0].totalCount;
-  const bookingList = list.length === 0 ? [] : list[0];
-
-  return res.status(200).json(({
-    apiId: req.apiId,
-    statusCode: 200,
-    message: 'Success',
-    data: { bookingList }
-  }));
-});
-
-// check user booking details with userId with more details 
-router.get('/history', identityManager(['admin', 'user', 'manager']), async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
-    return res.status(400).json({ statuscode: 400, message: "Faliure", data: { message: 'Invalid Id' } })
-  }
-
-  const userBooking = await Booking.aggregate([
-    {
-      $match: { userId: new mongoose.Types.ObjectId(req.query.userId) }
-    },
+    { $match: criteria },
+    { $skip: skipVal },
+    { $limit: limitVal },
+    { $sort: { creationDate: -1 } },
     {
       $lookup: {
         from: "users",
@@ -302,51 +196,20 @@ router.get('/history', identityManager(['admin', 'user', 'manager']), async (req
     { $unwind: "$User" },
     { $unwind: "$Parking Area" },
     {
-      $addFields: {
-        "User.userTimestamp": { $toDate: "$User.creationDate" },
-        timestamp: { $toDate: "$bookingDate" }
-      }
-    },
-    {
-      $addFields: {
-        "User.creationDateString": {
-          $dateToString: {
-            format: "%Y-%m-%d %H:%M:%S",
-            date: "$User.userTimestamp",
-            // timezone: "Asia/Kolkata"             // Adjust to your timezone
-          },
-        },
-        creationDateString: {
-          $dateToString: {
-            format: "%Y-%m-%d %H:%M:%S",            // Customize format as needed
-            date: "$timestamp",
-            // timezone: "Asia/Kolkata"             // Optional: Set your timezone
-          }
-        }
-      }
-    },
-    {
       $group: {
         _id: "$user._id",
-        user: {
-          // $first: "$User"
-          $first: {
-            username: "$User.username",
-            email: "$User.email",
-            mobile: "$User.mobile",
-            role: "$User.role",
-            creationDate: "$User.creationDateString"          // Formatted user creation date
-          }
-        },
+        user: { $first: "$User" },
         parkingArea: { $first: "$Parking Area" },
-        bookingHistory: {
+        totatBookings: { $sum: 1 },
+        booking: {
           $push: {
+            userId: "$userId",
             vehicleId: "$vehicleId",
             status: "$status",
-            spotNo: "$spotNo",
-            days: "$days",
-            hours: "$hours",
-            bookingDate: "$creationDateString",
+            slotNo: "$slotNo",
+            days: "$daysInSec",
+            hours: "$hoursInSec",
+            bookingDate: "$creationDate",
           }
         }
       }
@@ -354,20 +217,29 @@ router.get('/history', identityManager(['admin', 'user', 'manager']), async (req
     {
       $project: {
         _id: 0,
-        userId: 0,
-        "user._id": 0,
-        "user.token": 0,
-        "user.password": 0,
-        "parkingArea.creationDate": 0,
-        "parkingArea._id": 0,
-        "parkingArea.__v": 0,
-        __v: 0,
+        "user.fullName": 1,
+        "user.email": 1,
+        "user.mobile": 1,
+        "user.creationDate": 1,
+        totatBookings: 1,
+        "parkingArea.parkingAreaName": 1,
+        "parkingArea.allowedVehicle": 1,
+        "parkingArea.city": 1,
+        booking: 1
+      }
+    },
+    {
+      $facet: {
+        allDocs: [{ $skip: skipVal }, { $limit: limitVal }, { $group: { _id: null, totalCount: { $sum: 1 } } }],
+        paginatedDocs: [{ $skip: skipVal }, { $limit: limitVal }]
       }
     }
-  ])
-  if (!userBooking) return res.status(400).json({ statuscode: 400, message: "Faliure", data: { message: "UserId Not found" } })
+  ]);
 
-  return res.status(200).json({ statuscode: 200, message: "Success", data: { "Your Booking History is ": userBooking } })
+  const totalUsers = list[0].allDocs.length === 0 ? 0 : list[0].allDocs[0].totalCount;
+  const bookingHistory = list.length === 0 ? [] : list[0].paginatedDocs;
+
+  return res.status(200).json({ apiId: req.apiId, statuscode: 200, message: "Success", data: { totalUsers, bookingHistory } });
 });
 
 // booking create
