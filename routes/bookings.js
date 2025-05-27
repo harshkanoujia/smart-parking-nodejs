@@ -471,7 +471,7 @@ router.post('/complete', identityManager(['admin', 'user', 'manager']), async (r
 
   await booking.save();
 
-  return res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Failure', data: { msg: 'Booking Successfully Completed.' } });
+  return res.status(200).json({ apiId: req.apiId, statusCode: 200, message: 'Success', data: { msg: 'Booking Successfully Completed.' } });
 });
 
 
