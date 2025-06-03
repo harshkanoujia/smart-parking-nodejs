@@ -30,6 +30,8 @@ otpSchema.methods.generateOtp = function () {
   return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);    // 4 digit otp
 }
 
+otpSchema.index({ creationDate: 1 }, { expireAfterSeconds: 1200 });       // 20 min
+
 const Otp = mongoose.model("Otp", otpSchema);
 
 /* 
@@ -62,7 +64,7 @@ const otpTokenSchema = new mongoose.Schema({
   }
 });
 
-otpTokenSchema.index({ creationDate: 1 }, { expireAfterSeconds: 600 });
+otpTokenSchema.index({ creationDate: 1 }, { expireAfterSeconds: 600 });   // 10 min
 
 otpTokenSchema.methods.generateToken = function () {
   return Math.floor(Math.random() * (9999999 - 1000000 + 1) + 1000000);       // 7 digit token
@@ -86,9 +88,16 @@ function validateGenerateOtp(otp) {
 
 function validateVerifyOtp(otp) {
   const schema = Joi.object({
-    email: Joi.string().allow(""),
-    mobile: Joi.string().min(10).max(15),
-    otpSentOn: Joi.string().valid("mobile", "email"),
+    otpSentOn: Joi.string().valid("mobile", "email").required(),
+    // email: Joi.string().allow(""),
+    email: Joi.when("otpSentOn", {
+      is: "email",
+      then: Joi.string().email().required()
+    }),
+    mobile: Joi.when("otpSentOn", {
+      is: "mobile",
+      then: Joi.string().pattern(/^[0-9]/).required()
+    }),
     countryCode: Joi.string(),
     otp: Joi.number().min(1000).max(9999).required(),
     type: Joi.string().valid("UR", "UU", "UFP", "AL", "FRP", "UCP", "UAD", "UL").required()
