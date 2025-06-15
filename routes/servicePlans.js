@@ -5,7 +5,7 @@ const router = express.Router();
 const { identityManager } = require('../middleware/auth');
 const { SUBSCRIPTION_CONSTANTS } = require('../config/constant');
 const { createProductAndPrice } = require('../services/stripeFunctions');
-const { ServicePlan, validateProductPrice } = require('../model/ServicePlan');
+const { ServicePlan, validateProductPrice } = require('../models/ServicePlan');
 
 
 

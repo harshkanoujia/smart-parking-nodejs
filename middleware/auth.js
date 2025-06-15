@@ -2,9 +2,9 @@ const config = require('config');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
-const { User } = require('../model/User');
-const { Admin } = require('../model/Admin');
-const { Manager } = require('../model/Manager');
+const { User } = require('../models/User');
+const { Admin } = require('../models/Admin');
+const { Manager } = require('../models/Manager');
 const { AUTH_CONSTANTS } = require('../config/constant');
 
 

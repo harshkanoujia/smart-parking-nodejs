@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const { User } = require('../model/User');
-const { Vehicle } = require('../model/Vehicle');
-const { ParkingSlot } = require('../model/ParkingSlot');
-const { ParkingArea } = require('../model/ParkingArea');
+const { User } = require('../models/User');
+const { Vehicle } = require('../models/Vehicle');
+const { ParkingSlot } = require('../models/ParkingSlot');
+const { ParkingArea } = require('../models/ParkingArea');
 const { identityManager } = require('../middleware/auth');
 const { PARK_AREA_SLOT_CONSTANTS } = require('../config/constant');
 

@@ -2,9 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const { User } = require('../model/User');
-const { Admin } = require('../model/Admin');
-const { Manager } = require('../model/Manager');
+const { User } = require('../models/User');
+const { Admin } = require('../models/Admin');
+const { Manager } = require('../models/Manager');
 const { identityManager } = require('../middleware/auth');
 const { MANAGER_CONSTANTS, ADMIN_CONSTANTS, USER_CONSTANTS } = require('../config/constant');
 

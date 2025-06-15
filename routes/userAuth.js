@@ -5,7 +5,7 @@ const router = express.Router();
 
 const { USER_CONSTANTS } = require('../config/constant');
 const { identityManager } = require('../middleware/auth');
-const { User, validateUserLogin } = require('../model/User');
+const { User, validateUserLogin } = require('../models/User');
 
 
 

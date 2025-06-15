@@ -2,8 +2,8 @@ const config = require("config");
 const express = require("express");
 const router = express.Router();
 
-const { User } = require("../model/User");
-const { Otp, OtpToken, validateGenerateOtp, validateVerifyOtp } = require("../model/Otp");
+const { User } = require("../models/User");
+const { Otp, OtpToken, validateGenerateOtp, validateVerifyOtp } = require("../models/Otp");
 
 
 // otp send on email or mobile

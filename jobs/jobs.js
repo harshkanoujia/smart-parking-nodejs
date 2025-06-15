@@ -1,7 +1,7 @@
-const { User } = require("../model/User");
-const { Booking } = require("../model/Booking");
-const { ParkingArea } = require("../model/ParkingArea");
-const { ParkingSlot } = require("../model/ParkingSlot");
+const { User } = require('../models/User');
+const { Booking } = require('../models/Booking');
+const { ParkingArea } = require('../models/ParkingArea');
+const { ParkingSlot } = require('../models/ParkingSlot');
 
 
 // notification sent to user that booking is end 

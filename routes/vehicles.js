@@ -3,10 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const { User } = require('../model/User');
+const { User } = require('../models/User');
 const { identityManager } = require('../middleware/auth');
 const { VEHICLE_CONSTANTS } = require('../config/constant');
-const { Vehicle, validateVehicle } = require('../model/Vehicle');
+const { Vehicle, validateVehicle } = require('../models/Vehicle');
 
 
 

@@ -8,7 +8,7 @@ const router = express.Router();
 const { USER_CONSTANTS } = require('../config/constant');
 const { identityManager } = require('../middleware/auth');
 const { createCustomer } = require('../services/stripeFunctions');
-const { User, validateUserRegister, validateUserUpdate } = require('../model/User');
+const { User, validateUserRegister, validateUserUpdate } = require('../models/User');
 
 
 
