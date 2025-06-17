@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const { ParkingArea } = require('../model/ParkingArea');
+const { ParkingArea } = require('../models/ParkingArea');
 const { identityManager } = require('../middleware/auth');
 const { PARK_AREA_CONSTANTS } = require('../config/constant');
 const { calcTotalAmount } = require('../services/commonFunctions');

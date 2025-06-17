@@ -1,4 +1,4 @@
-const { Admin } = require('../model/Admin');
+const { Admin } = require('../models/Admin');
 
 async function Seed() {
   let admin = await Admin.find()

@@ -2,10 +2,10 @@ const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
 
-const { ParkingSlot } = require('../model/ParkingSlot');
+const { ParkingSlot } = require('../models/ParkingSlot');
 const { identityManager } = require('../middleware/auth');
 const { PARK_AREA_CONSTANTS } = require('../config/constant');
-const { ParkingArea, validateParkingArea } = require('../model/ParkingArea');
+const { ParkingArea, validateParkingArea } = require('../models/ParkingArea');
 
 
 

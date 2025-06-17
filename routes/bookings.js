@@ -3,16 +3,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const { User } = require('../model/User');
-const { Invoice } = require('../model/Invoice');
-const { Payment } = require('../model/Payment');
-const { Vehicle } = require('../model/Vehicle');
-const { ParkingArea } = require('../model/ParkingArea');
-const { ParkingSlot } = require('../model/ParkingSlot');
+const { User } = require('../models/User');
+const { Invoice } = require('../models/Invoice');
+const { Payment } = require('../models/Payment');
+const { Vehicle } = require('../models/Vehicle');
+const { ParkingArea } = require('../models/ParkingArea');
+const { ParkingSlot } = require('../models/ParkingSlot');
 const { identityManager } = require('../middleware/auth');
 const { calcTotalAmount } = require('../services/commonFunctions');
 const { createPaymentIntent } = require('../services/stripeFunctions');
-const { Booking, validateBookingCreate, validateBookingComplete } = require('../model/Booking');
+const { Booking, validateBookingCreate, validateBookingComplete } = require('../models/Booking');
 const { PARK_AREA_CONSTANTS, BOOKING_CONSTANTS, PARK_AREA_SLOT_CONSTANTS, PAYMENT_CONSTANT } = require('../config/constant');
 
 

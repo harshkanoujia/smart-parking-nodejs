@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 
-const { Admin, validate } = require('../model/Admin');
+const { Admin, validate } = require('../models/Admin');
 const { identityManager } = require('../middleware/auth');
 const { ADMIN_CONSTANTS } = require('../config/constant');
 

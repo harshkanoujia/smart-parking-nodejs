@@ -25,6 +25,7 @@ const subscribe = require("../routes/subscriptions");
 const vehicle = require('../routes/vehicles');
 const booking = require('../routes/bookings');
 const payment = require("../routes/payments");
+const otp = require('../routes/otps');
 
 // error Handling
 const error = require('../middleware/error');
@@ -33,9 +34,11 @@ const error = require('../middleware/error');
 module.exports = async function (app) {
   app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
+  // JSON and URL parsing middleware
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Swagger docs
   await swagger();
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
 
@@ -55,10 +58,12 @@ module.exports = async function (app) {
 
   app.use('/api/service-plans', servicePlan);
   app.use('/api/subscriptions', subscribe);
-  
+
   app.use('/api/vehicles', vehicle);
   app.use('/api/bookings', booking);
   app.use('/api/payments', payment);
-  
+
+  app.use('/api/otps', otp);
+
   app.use(error);
 }

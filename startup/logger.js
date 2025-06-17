@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ApiLog = require('../model/apiLog');
+const ApiLog = require('../models/apiLog');
 
 
 

@@ -1,17 +1,17 @@
-#certs
+# certs
 certs
 
-# Node files
+# internal files
 node_modules/
 
-#logs files
+# logs files
 /logs
 
-#Configuration files
+# configuration files
 config/default.json 
 
-# Ignore Swagger output file
+# swagger output file
 swagger-output.json
 
-#Now README file not push
+# README file 
 README.txt

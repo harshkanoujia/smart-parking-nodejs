@@ -2,10 +2,10 @@ const config = require('config');
 const express = require('express');
 const router = express.Router();
 
-const { Payment } = require('../model/Payment');
-const { Booking } = require('../model/Booking');
-const { Webhook } = require('../model/Webhook');
-const { Subscription } = require('../model/Subscription');
+const { Payment } = require('../models/Payment');
+const { Booking } = require('../models/Booking');
+const { Webhook } = require('../models/Webhook');
+const { Subscription } = require('../models/Subscription');
 const { webhook } = require('../services/stripeFunctions');
 const webhookSecret = config.get('STRIPE_WEBHOOK_SIGNING_SECRET');
 

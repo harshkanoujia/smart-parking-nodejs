@@ -3,14 +3,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const { User } = require('../model/User');
+const { User } = require('../models/User');
 const { identityManager } = require('../middleware/auth');
 const { SUBSCRIPTION_CONSTANTS } = require('../config/constant');
-const { Subscription, validateSubscription } = require('../model/Subscription');
+const { Subscription, validateSubscription } = require('../models/Subscription');
 const { createSubscriptionPlan, linkPaymentMethodToCustomer, setAsDefaultPaymentMethod } = require('../services/stripeFunctions');
-const { ServicePlan } = require('../model/ServicePlan');
-const { Payment } = require('../model/Payment');
-const { Invoice } = require('../model/Invoice');
+const { ServicePlan } = require('../models/ServicePlan');
+const { Payment } = require('../models/Payment');
+const { Invoice } = require('../models/Invoice');
 
 
 
