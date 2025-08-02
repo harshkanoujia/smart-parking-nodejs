@@ -26,6 +26,6 @@ module.exports = function (err, req, res, next) {
     apiId: req.apiId,
     statusCode: 500,
     message: 'Failure',
-    error: 'Something failed. Please try again after 5 minutes'
+    error: 'We are facing some internal issue. Please try again after sometime.'
   });
 }
